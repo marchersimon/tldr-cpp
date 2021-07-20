@@ -4,6 +4,8 @@
 #include <fstream>
 #include <filesystem>
 
+#include "opts.h"
+
 using std::string;
 
 namespace global {
@@ -80,37 +82,59 @@ string getPage(string name, std::vector<Platform> platforms) {
 		throw std::runtime_error("Documentation for " + name + " is not available. ");
 	}
 
-	return filePath;
+	std::ifstream file(filePath);
+
+	if(file.is_open() == false) {
+		throw std::runtime_error("Could not open file " + filePath);
+	}
+	string line;
+	string fileContent;
+	while(std::getline(file, line)) {
+		fileContent += line + '\n';
+	}
+
+	file.close();
+	return fileContent;
 }
 
-int main() {
+void displayHelp() {
+	std::cout <<
+		"Usage: tldr [options] command\n"
+		"\n"
+		"Options:\n"
+		"  -h, --help: Display this help\n";
+}
+
+int main(int argc, char *argv[]) {
+
+	opts::parse(argc, argv);
+
+	if(opts::file.empty() || opts::help) {
+		displayHelp();
+		return 0;
+	}
 
 	TldrStructure tldrStructure;
 
 	try{
 		tldrStructure = checkTldrCache();
 	} catch (const std::runtime_error& e) {
-		std::cout << e.what() << std::endl;
+		std::cerr << e.what() << std::endl;
 		return 1;
 	}
 
 	tldrStructure.sortPlatforms();
 
-	int size = tldrStructure.platforms.size();
-	for(int i = 0; i < size; i++) {
-		std::cout << tldrStructure.platforms.at(i).name << " " << tldrStructure.platforms.at(i).numberOfPages << std::endl;
-	}
-
 	string filePath;
 
 	try {
-		filePath = getPage("testabc", tldrStructure.platforms);
+		filePath = getPage(opts::file, tldrStructure.platforms);
 	} catch (const std::runtime_error& e) {
-		std::cout << e.what() << std::endl;
+		std::cerr << e.what() << std::endl;
 		return 1;
 	}
 
-	std::cout << "Found file at " << filePath << std::endl;
+	std::cout << filePath << std::endl;
 
 	return 0;
 }
