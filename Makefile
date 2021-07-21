@@ -1,2 +1,2 @@
 build:
-	g++ src/*.cpp -o tldr
+	g++ src/*.cpp -std=c++17 -o tldr
