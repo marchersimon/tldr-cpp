@@ -12,26 +12,11 @@ void cache::Structure::sortPlatforms() {
 }
 
 cache::Structure cache::check() { // TODO: add support for OSX and Windows
-	// get path to $HOME
-	char* HOME = getenv("HOME");
-	if(HOME == nullptr) {
-		throw std::runtime_error("Environment variable $HOME not set");
-	}
-
-	// check if page cache exists at $HOME/.cache/tldr
-	global::tldrPath = string(HOME) + "/.cache/tldr/pages";
-	struct stat statStruct;
-	if(stat(global::tldrPath.c_str(), &statStruct) != 0) {
-		throw std::runtime_error("no tldr");
-	}
-	if(!(statStruct.st_mode & S_IFDIR)) {
-		throw std::runtime_error(global::tldrPath + " is not a directory");
-	}
 
 	// get the structure of the tldr cache (platforms and number of pages per platform)
 	cache::Structure tldrStructure;
 
-	for(const auto & entry : std::filesystem::directory_iterator(global::tldrPath)) {// needs C++17
+	for(const auto & entry : std::filesystem::directory_iterator(global::tldrPath + "pages/")) {// needs C++17
 		cache::Platform newPlatform;
 		string path = entry.path();
 		int pos = path.find_last_of('/') + 1;
@@ -48,7 +33,7 @@ string cache::getPage(string name, std::vector<cache::Platform> platforms) {
 	struct stat statStruct;
 	string filePath;
 	for(const auto & platform : platforms) {
-		filePath = global::tldrPath + "/" + platform.name + "/" + name + ".md";
+		filePath = global::tldrPath + "pages/" + platform.name + "/" + name + ".md";
 		if(stat(filePath.c_str(), &statStruct) == 0 && statStruct.st_mode & S_IFREG) {
 			break;
 		}

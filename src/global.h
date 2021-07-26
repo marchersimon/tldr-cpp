@@ -7,4 +7,5 @@ using std::string;
 namespace global {
 	inline string tldrPath;
 	inline string defaultPlatform;
+	inline string HOME;
 }
