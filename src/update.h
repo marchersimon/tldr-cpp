@@ -15,14 +15,6 @@ struct zipEntry {
     std::string filename;
 };
 
-bool isPage(const char* path) {
-    if(std::string(path).find(".md") != -1) {
-        return true;
-    }
-    return false;
-
-}
-
 /*
 Parses the path to an entry in the zip file. It extracts the language code, platform and file name. 
 The path can be pages(.xyz)/, pages(.xyz)/platform/ or pages(.xyz)/platform/filename.md
@@ -74,39 +66,49 @@ void parseEntry(struct zipEntry &entry) {
     } while(end != std::string::npos);
 
     // only extract pages in a specific language
-    //if(entry.language == "de") entry.wanted = true;
-    entry.wanted = true;
+    if(opts::overrideLanguage) {
+        if(entry.language == opts::language || entry.language == "en") {
+            entry.wanted = true;
+        }
+    } else {
+        entry.wanted = true;
+    }
 }
 
-size_t processChunk(char* buffer, size_t itemsize, size_t nitems, void* tldrZip) {
+/*
+This function gets called every time a new chunk is downloaded and writes it to the filestream tldrZip
+*/
+size_t processChunk(char* buffer, size_t itemsize, size_t nitems, void* tldrZipPtr) {
     size_t bytes = itemsize * nitems;
-    std::ofstream* tldrZip1 = (std::ofstream*)tldrZip;
-    tldrZip1->write(buffer, bytes);
-    return bytes;
+    std::ofstream* tldrZip = (std::ofstream*)tldrZipPtr;
+    tldrZip->write(buffer, bytes);
+    return bytes; // this is needed by libcurl
 }
 
-string downloadZip() {
+// This function downloads the zip file to a specific path
+void downloadZip(string path) {
     CURL* curl = curl_easy_init();
     if(!curl) {
-        return "";
+        throw std::runtime_error("To put it in the words of the libcurl docs: Something went wrong");
     }
-    CURLcode res;
+    std::ofstream tldrZip(path);
+
     curl_easy_setopt(curl, CURLOPT_URL, "https://tldr.sh/assets/tldr.zip");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, processChunk);
-    std::ofstream tldrZip("/tmp/tldr.zip");
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&tldrZip);
-    res = curl_easy_perform(curl);
+    CURLcode res = curl_easy_perform(curl);
+
     tldrZip.close();
-    if(res != CURLE_OK) {
-        return "";
-    }
     curl_easy_cleanup(curl);
-    return "/tmp/tldr.zip";
+    if(res != CURLE_OK) {
+        throw std::runtime_error("Could not download cache: Error code " + std::to_string(res) + ". More at https://curl.se/libcurl/c/libcurl-errors.html.");
+    }
 }
 
 void updateCache() {
 
-    downloadZip();
+    string zipPath = "/tmp/tldr.zip";
+    downloadZip(zipPath);
 
     // remove any ~/.tldr/cache.old directory, just to make sure
     std::filesystem::remove_all(global::HOME + "/.tldr/cache.old");
@@ -120,12 +122,11 @@ void updateCache() {
     int err = 0; // TODO
     zip* archive = zip_open("/tmp/tldr.zip", 0, &err);
 	if(!archive) {
-		throw std::runtime_error("Could not open archive");
+		throw std::runtime_error("Could not open archive at " + zipPath);
 	}
     struct zipEntry entry;
 
 	zip_int64_t numEntries = zip_get_num_entries(archive, 0);
-    std::cout << numEntries << std::endl;
 	for(int i = 0; i < numEntries; i++) {
         entry.path = zip_get_name(archive, i, 0);
         parseEntry(entry);
@@ -149,5 +150,6 @@ void updateCache() {
         }
 	}
 	zip_close(archive);
+    std::filesystem::remove(zipPath);
     std::filesystem::remove_all(global::HOME + "/.tldr/cache.old");
 }

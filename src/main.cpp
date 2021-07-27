@@ -14,7 +14,9 @@ void displayHelp() {
 		"\n"
 		"Options:\n"
 		"  -h, --help:   Display this help\n"
-		"  -u, --update: Update the local tldr cache\n";
+		"  -u, --update: Update the local tldr cache\n"
+		"  -l, --language: Override the default language for pages or, when used with --update, override the default language (if any) for downloading pages.\n"
+		"                  If the specified language isn't found, it will be ignored.\n";
 }
 
 void init() {

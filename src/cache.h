@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "global.h"
+#include "opts.h"
 
 namespace cache {
 	class Platform {
