@@ -56,6 +56,10 @@ namespace opts {
 			}
 		}
 
+		if(languages.empty()) {
+			languages.push_back("en");
+		}
+
 		if(optind < argc) { // if there are remaining arguments -> the page name
 			file = argv[optind];
 		}

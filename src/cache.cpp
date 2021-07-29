@@ -32,13 +32,22 @@ cache::Structure cache::check() { // TODO: add support for OSX and Windows
 string cache::getPage(string name, std::vector<cache::Platform> platforms) {
 	struct stat statStruct;
 	string filePath;
-	for(const auto & platform : platforms) {
-		filePath = global::tldrPath + "pages/" + platform.name + "/" + name + ".md";
-		if(stat(filePath.c_str(), &statStruct) == 0 && statStruct.st_mode & S_IFREG) {
-			break;
+	string pagesDir = "pages";
+	for(const auto & language : opts::languages) {
+		if(language == "en") {
+			pagesDir = "pages";
+		} else {
+			pagesDir = "pages." + language;
 		}
-		filePath = "";
+		for(const auto & platform : platforms) {
+			filePath = global::tldrPath + pagesDir + "/" + platform.name + "/" + name + ".md";
+			if(stat(filePath.c_str(), &statStruct) == 0 && statStruct.st_mode & S_IFREG) {
+				goto page_found;
+			}
+			filePath = "";
+		}
 	}
+	page_found:
 	
 	if(filePath.empty()) {
 		throw std::runtime_error("Documentation for " + name + " is not available. ");
