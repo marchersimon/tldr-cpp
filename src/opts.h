@@ -9,6 +9,7 @@ namespace opts {
 	inline std::string file;
 	inline bool overrideLanguage = false;
 	inline std::string language;
+	inline bool verbose;
 
 	inline void parse(int argc, char *argv[]) {
 
@@ -16,12 +17,13 @@ namespace opts {
 			{"help", no_argument, NULL, 'h'},
 			{"update", no_argument, NULL, 'u'},
 			{"language", required_argument, NULL, 'u'},
+			{"verbose", no_argument, NULL, 'v'},
 			{NULL, 0, NULL, 0},
 		};
 
 		char opt;
 
-		while((opt = getopt_long(argc, argv, "hul:", long_options, NULL)) != -1) {
+		while((opt = getopt_long(argc, argv, "hul:v", long_options, NULL)) != -1) {
 			switch(opt) {
 				case 'h':
 					help = true;
@@ -32,6 +34,9 @@ namespace opts {
 				case 'l':
 					overrideLanguage = true;
 					language = optarg;
+					break;
+				case 'v':
+					verbose = true;
 					break;
 			}
 		}

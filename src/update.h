@@ -3,7 +3,9 @@
 #include <curl/curl.h>
 #include <zip.h>
 #include <fstream>
+#include <iostream>
 #include <filesystem>
+
 #include "global.h"
 
 struct zipEntry {
@@ -115,7 +117,64 @@ void downloadZip(string path) {
     tldrZip.close();
     curl_easy_cleanup(curl);
     if(res != CURLE_OK) {
-        throw std::runtime_error("Could not download cache: Error code " + std::to_string(res) + ". More at https://curl.se/libcurl/c/libcurl-errors.html.");
+    }
+    switch(res) {
+        case CURLE_OK:
+            break;
+        case CURLE_COULDNT_RESOLVE_HOST:
+            throw std::runtime_error("Could not resolve host. Are you connected to the internet?");
+            break;
+        default:
+            throw std::runtime_error("Could not download cache: Error code " + std::to_string(res) + ". More at https://curl.se/libcurl/c/libcurl-errors.html.");
+
+    }
+}
+
+void printDiff() {
+    int pagesChanged = 0;
+    int tldrPathLenght = global::tldrPath.length();
+    std::hash<std::string> hash;
+    for(const auto & entry : std::filesystem::recursive_directory_iterator(global::tldrPath)) {// needs C++17
+        if(entry.is_directory()) {
+            continue;
+        }
+        std::ifstream fileStream1(entry.path());
+        string file1;
+        string temp;
+        while(std::getline(fileStream1, temp)) {
+            file1 += temp + '\n';
+        }
+        fileStream1.close();
+        size_t hash1 = hash(file1);
+
+        string oldPath = entry.path();
+        oldPath.insert(tldrPathLenght - 1, ".old");
+        std::ifstream fileStream2(oldPath);
+        if(!fileStream2.is_open()) {
+            if(opts::verbose) {
+                std::cout << "Created:  " << entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght) << std::endl;
+            }
+            pagesChanged++;
+            continue;
+        }
+
+        string file2;
+        while(std::getline(fileStream2, temp)) {
+            file2 += temp + '\n';
+        }
+        fileStream2.close();
+        size_t hash2 = hash(file2);
+        if(hash1 != hash2) {
+            if(opts::verbose) {
+                std::cout << "Modified: " << entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght) << std::endl;
+            }
+            pagesChanged++;
+        }
+    }
+    if(pagesChanged == 0) {
+        std::cout << "It had no effect!" << std::endl;
+    } else {
+        std::cout << pagesChanged << " pages updated" << std::endl;
     }
 }
 
@@ -166,5 +225,7 @@ void updateCache() {
 	}
 	zip_close(archive);
     std::filesystem::remove(zipPath);
+    printDiff();
+
     std::filesystem::remove_all(global::HOME + "/.tldr/cache.old");
 }
