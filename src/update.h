@@ -75,10 +75,22 @@ void parseEntry(struct zipEntry &entry) {
     }
 }
 
+int libcurl_ProgressCallback(void* ptr, double dltotal, double dlnow, double utotal, double ulnow) {
+    // prevent division by zero later on in case the file is empty
+    if(dltotal <= 0) {
+        return 0;
+    }
+
+    int percentage = 100 * dlnow / dltotal;
+    std::cout << "\r[1/2] Downloading: " << percentage << "%" << std::flush;
+
+    return 0;
+}
+
 /*
 This function gets called every time a new chunk is downloaded and writes it to the filestream tldrZip
 */
-size_t processChunk(char* buffer, size_t itemsize, size_t nitems, void* tldrZipPtr) {
+size_t libcurl_WriteCallback(char* buffer, size_t itemsize, size_t nitems, void* tldrZipPtr) {
     size_t bytes = itemsize * nitems;
     std::ofstream* tldrZip = (std::ofstream*)tldrZipPtr;
     tldrZip->write(buffer, bytes);
@@ -94,8 +106,10 @@ void downloadZip(string path) {
     std::ofstream tldrZip(path);
 
     curl_easy_setopt(curl, CURLOPT_URL, "https://tldr.sh/assets/tldr.zip");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, processChunk);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, libcurl_WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&tldrZip);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, libcurl_ProgressCallback);
     CURLcode res = curl_easy_perform(curl);
 
     tldrZip.close();
@@ -109,6 +123,7 @@ void updateCache() {
 
     string zipPath = "/tmp/tldr.zip";
     downloadZip(zipPath);
+    std::cout << std::endl << "[2/2] Exctracting..." << std::endl;
 
     // remove any ~/.tldr/cache.old directory, just to make sure
     std::filesystem::remove_all(global::HOME + "/.tldr/cache.old");

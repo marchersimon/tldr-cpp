@@ -6,6 +6,7 @@
 #include "cache.h"
 #include "global.h"
 #include "update.h"
+#include "page.h"
 
 
 void displayHelp() {
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]) {
 
 	if(opts::update) {
 		updateCache();
-		return 3;
+		return 0;
 	}
 
 	cache::Structure tldrStructure;
@@ -78,7 +79,9 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	std::cout << filePath << std::endl;
+	Page page(filePath);
+	page.format();
+	page.print();
 
 	return 0;
 }

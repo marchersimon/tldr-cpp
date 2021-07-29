@@ -4,13 +4,13 @@
 
 namespace opts {
 
-	bool help = false;
-	bool update = false;
-	std::string file;
-	bool overrideLanguage = false;
-	std::string language;
+	inline bool help = false;
+	inline bool update = false;
+	inline std::string file;
+	inline bool overrideLanguage = false;
+	inline std::string language;
 
-	void parse(int argc, char *argv[]) {
+	inline void parse(int argc, char *argv[]) {
 
 		static struct option long_options[] = {
 			{"help", no_argument, NULL, 'h'},
