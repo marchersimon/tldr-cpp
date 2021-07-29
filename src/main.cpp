@@ -11,14 +11,15 @@
 
 void displayHelp() {
 	std::cout <<
-		"Usage: tldr [options] command\n"
+		"Usage: tldr [options] [command]\n"
 		"\n"
 		"Options:\n"
-		"  -h, --help:     Display this help\n"
 		"  -u, --update:   Update the local tldr cache\n"
-		"  -l, --language: Override the default language for pages or, when used with --update, override the default language (if any) for downloading pages.\n"
-		"                  If the specified language isn't found, it will be ignored.\n"
-		"  -v, --verbose:  Print more details\n";
+		"  -l, --language: Specify a comma-separated list of language codes, like \"fr,it\"\n"
+		"                  Pages will be searched for in this order. If nothing is found it will default to \"en\"\n"
+		"                  When used with --update, this will specify the languages to download\n"
+		"  -v, --verbose:  Print more details\n"
+		"  -h, --help:     Display this help\n";
 }
 
 void init() {

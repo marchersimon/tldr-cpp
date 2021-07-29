@@ -1,15 +1,31 @@
 #pragma once
 
 #include <getopt.h>
+#include <string>
+#include <vector>
+
+#include "global.h"
 
 namespace opts {
 
 	inline bool help = false;
 	inline bool update = false;
 	inline std::string file;
-	inline bool overrideLanguage = false;
-	inline std::string language;
+	inline std::vector<string> languages;
 	inline bool verbose;
+
+	/*
+	Parses a comma-separated list of languages like "en,fr,it" and puts them in a list
+	*/
+	inline void parseLanguages(char* optarg) {
+		languages.clear();
+		std::stringstream languagelist(optarg);
+		while(languagelist.good()) {
+			string nextLanguage;
+			std::getline(languagelist, nextLanguage, ',');
+			languages.push_back(nextLanguage);
+		}
+	}
 
 	inline void parse(int argc, char *argv[]) {
 
@@ -32,8 +48,7 @@ namespace opts {
 					update = true;
 					break;
 				case 'l':
-					overrideLanguage = true;
-					language = optarg;
+					parseLanguages(optarg);
 					break;
 				case 'v':
 					verbose = true;
