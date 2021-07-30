@@ -1,8 +1,30 @@
 #include "cache.h"
 
+/*
+This function gets the path to the cache and makes sure it exists
+*/
+void cache::init() {
+	// get path to $HOME
+	global::HOME = getenv("HOME");
+	if(global::HOME.empty()) {
+		throw std::runtime_error("Environment variable $HOME not set");
+	}
+
+	// check if page cache exists at $HOME/.cache/tldr and create it if not
+	global::tldrPath = global::HOME + "/.tldr/cache/";
+	struct stat statStruct;
+	if(stat(global::tldrPath.c_str(), &statStruct) != 0) {
+		std::filesystem::create_directory(global::HOME + "/.tldr/");
+		std::filesystem::create_directory(global::HOME + "/.tldr/cache/");
+	}
+}
+
+/*
+This sorts the list of platforms, so that the preferred one is at first position and "common" is at second
+*/
 void cache::Structure::sortPlatforms() {
 	for(auto & platform : platforms) {
-		if(platform.name == global::defaultPlatform) {
+		if(platform.name == opts::platform) {
 			std::swap(platforms.at(0), platform);
 		}
 		if(platform.name == "common") {

@@ -20,6 +20,8 @@ namespace cache {
 			void sortPlatforms();
 	};
 
+	void init();
+
 	Structure check();
 
 	string getPage(string name, std::vector<Platform> platforms);

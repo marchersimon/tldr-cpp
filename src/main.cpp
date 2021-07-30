@@ -9,34 +9,7 @@
 #include "page.h"
 
 
-void displayHelp() {
-	std::cout <<
-		"Usage: tldr [options] [command]\n"
-		"\n"
-		"Options:\n"
-		"  -u, --update:   Update the local tldr cache\n"
-		"  -l, --language: Specify a comma-separated list of language codes, like \"fr,it\"\n"
-		"                  Pages will be searched for in this order. If nothing is found it will default to \"en\"\n"
-		"                  When used with --update, this will specify the languages to download\n"
-		"  -v, --verbose:  When used with --update, this will print every file, wich was created or modified\n"
-		"  -h, --help:     Display this help\n";
-}
-
-void init() {
-	// get path to $HOME
-	global::HOME = getenv("HOME");
-	if(global::HOME.empty()) {
-		throw std::runtime_error("Environment variable $HOME not set");
-	}
-
-	// check if page cache exists at $HOME/.cache/tldr and create it if not
-	global::tldrPath = global::HOME + "/.tldr/cache/";
-	struct stat statStruct;
-	if(stat(global::tldrPath.c_str(), &statStruct) != 0) {
-		std::filesystem::create_directory(global::HOME + "/.tldr/");
-		std::filesystem::create_directory(global::HOME + "/.tldr/cache/");
-	}
-}
+void displayHelp();
 
 int main(int argc, char *argv[]) {
 
@@ -48,7 +21,7 @@ int main(int argc, char *argv[]) {
 	}
 	
 	try {
-		init();
+		cache::init();
 	} catch (const std::runtime_error& e) {
 		std::cerr << e.what() << std::endl;
 		return 1;
@@ -75,8 +48,6 @@ int main(int argc, char *argv[]) {
 
 	tldrStructure.sortPlatforms();
 
-	global::defaultPlatform = "linux";
-
 	string filePath;
 
 	try {
@@ -91,4 +62,18 @@ int main(int argc, char *argv[]) {
 	page.print();
 
 	return 0;
+}
+
+void displayHelp() {
+	std::cout <<
+		"Usage: tldr [options] [command]\n"
+		"\n"
+		"Options:\n"
+		"  -u, --update:   Update the local tldr cache\n"
+		"  -l, --language: Specify a comma-separated list of language codes, like \"fr,it\"\n"
+		"                  Pages will be searched for in this order. If nothing is found it will default to \"en\"\n"
+		"                  When used with --update, this will specify the languages to download\n"
+		"  -p, --platform  Override the default platform\n"
+		"  -v, --verbose:  When used with --update, this will print every file, wich was created or modified\n"
+		"  -h, --help:     Display this help" << std::endl;
 }

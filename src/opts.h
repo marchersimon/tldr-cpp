@@ -13,6 +13,7 @@ namespace opts {
 	inline std::string file;
 	inline std::vector<string> languages;
 	inline bool verbose;
+	inline string platform;
 
 	/*
 	Parses a comma-separated list of languages like "en,fr,it" and puts them in a list
@@ -34,12 +35,13 @@ namespace opts {
 			{"update", no_argument, NULL, 'u'},
 			{"language", required_argument, NULL, 'u'},
 			{"verbose", no_argument, NULL, 'v'},
+			{"platform", required_argument, NULL, 'p'},
 			{NULL, 0, NULL, 0},
 		};
 
 		char opt;
 
-		while((opt = getopt_long(argc, argv, "hul:v", long_options, NULL)) != -1) {
+		while((opt = getopt_long(argc, argv, "hul:vp:", long_options, NULL)) != -1) {
 			switch(opt) {
 				case 'h':
 					help = true;
@@ -52,6 +54,9 @@ namespace opts {
 					break;
 				case 'v':
 					verbose = true;
+					break;
+				case 'p':
+					platform = optarg;
 					break;
 			}
 		}

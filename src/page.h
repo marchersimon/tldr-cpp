@@ -3,13 +3,14 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include <regex>
 
 #include "global.h"
 
 class Example {
     public:
         string description;
-        string example;
+        string command;
 };
 
 class Page {
@@ -42,7 +43,7 @@ class Page {
                 Example example;
                 example.description = getLine();
                 getLine();
-                example.example = getLine();
+                example.command = getLine();
                 examples.push_back(example);
                 if(getLine() == "EOF") {
                     break;
@@ -52,6 +53,8 @@ class Page {
 
         void print();
         void format();
+        void formatBackticks(string* str);
+        void formatTokenSyntax(string* str);
 };
 
 string Page::getLine() {
@@ -70,12 +73,80 @@ void Page::print() {
     std::cout << description;
     for(auto example : examples) {
         std::cout << std::endl << example.description << std::endl << std::endl;
-        std::cout << example.example << std::endl;
+        std::cout << example.command << std::endl;
     }
 }
 
 void Page::format() {
+    // format the title
     name.erase(0, 2);
-    name.insert(0, global::nameColor);
-    name.append(global::textColor);
+    name.insert(0, global::color::title);
+    name.append(global::color::dfault);
+    // Format the command description
+    // Remove the "> " at the start of the line
+    std::regex reg1("(\\> )");
+    std::smatch matches;
+    while(std::regex_search(description, matches, reg1)) {
+        description.erase(matches.position(), 2);
+    }
+    // Remove the brackets of the more information link
+    std::regex reg2("\\<.*\\>\\.");
+    if(std::regex_search(description, matches, reg2)) {
+        description.erase(matches.position() + matches.length() - 2, 1);
+        description.erase(matches.position(), 1);
+    }
+    formatBackticks(&description);
+
+    for (auto & example : examples) {
+        formatBackticks(&example.description);
+        example.command.replace(0, 1, global::color::command);
+        example.command.replace(example.command.length() - 1, 1, global::color::dfault);
+        formatTokenSyntax(&example.command);
+    }
+}
+
+void Page::formatBackticks(string* str) {
+    bool isBacktick = false;
+    std::regex reg("(\\`([^\\`].*?)\\`)");
+    std::smatch matches;
+    while(std::regex_search(*str, matches, reg)) {
+        str->replace(matches.position() + matches.length() - 1, 1, global::color::dfault);
+        str->replace(matches.position(), 1, global::color::backtick);
+    }
+}
+
+void Page::formatTokenSyntax(string* str) {
+    int tokenCount = 0; // needed to detect nested "{{ }}"
+    bool hasNestedTokens = false;
+    std::regex reg("(\\{{2}|\\}{2}(?!\\}))");
+    std::smatch matches;
+    while(std::regex_search(*str, matches, reg)) {
+        if(matches.str() == "{{" && tokenCount == 0) {
+                str->replace(matches.position(), 2, global::color::token);
+                tokenCount++;
+        } else if(matches.str() == "}}" && tokenCount == 1) {
+            str->replace(matches.position(), 2, global::color::dfault);
+            tokenCount--;
+        } else if(matches.str() == "{{") {
+            // insert 0x07 between braces so they don't get matched again
+            str->insert(matches.position() + 1, "\7");
+            tokenCount++;
+            hasNestedTokens = true;
+        } else if(matches.str() == "}}") {
+            str->insert(matches.position() + 1, "\7");
+            tokenCount--;
+            hasNestedTokens = true;
+        }
+        if(tokenCount < 0) {
+            tokenCount = 0;
+        }
+    }
+    
+    if(hasNestedTokens) { // remove all the 0x07 again
+        int pos = str->find("\7");
+        while(pos != string::npos) {
+            str->erase(pos, 1);
+            pos = str->find("\7");
+        }
+    }
 }
