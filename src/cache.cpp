@@ -55,7 +55,11 @@ string cache::getPage(string name, std::vector<cache::Platform> platforms) {
 	struct stat statStruct;
 	string filePath;
 	string pagesDir = "pages";
-	for(const auto & language : opts::languages) {
+	std::vector<string> languages = opts::languages;
+	if(languages.empty()) {
+		languages.push_back("en");
+	}
+	for(const auto & language : languages) {
 		if(language == "en") {
 			pagesDir = "pages";
 		} else {

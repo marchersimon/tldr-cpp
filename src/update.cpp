@@ -54,7 +54,9 @@ void parseEntry(struct zipEntry &entry) {
     // only extract the page if the language is in the list
     if(opts::languages.empty()) {
         entry.wanted = true;
-    } else if (std::find(opts::languages.begin(), opts::languages.end(), entry.language) != opts::languages.end()){
+    } else if(entry.language == "en") {
+        entry.wanted = true;
+    } else if(std::find(opts::languages.begin(), opts::languages.end(), entry.language) != opts::languages.end()){
         entry.wanted = true;
     }
 }
