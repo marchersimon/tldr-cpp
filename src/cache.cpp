@@ -55,30 +55,37 @@ Page cache::getPage(string name, std::vector<cache::Platform> platforms) {
 	struct stat statStruct;
 	string filePath;
 	string platform;
-	string pagesDir = "pages";
 	std::vector<string> languages = opts::languages;
 	if(languages.empty()) {
 		languages.push_back("en");
 	}
-	for(const auto & language : languages) {
-		if(language == "en") {
-			pagesDir = "pages";
-		} else {
-			pagesDir = "pages." + language;
+
+	for(const auto & p : platforms) {
+
+		filePath = global::tldrPath + "pages" + "/" + p.name + "/" + name + ".md";
+		if(stat(filePath.c_str(), &statStruct) == 0 && statStruct.st_mode & S_IFREG) {
+			platform = p.name;
+			break;
 		}
-		for(const auto & p : platforms) {
-			filePath = global::tldrPath + pagesDir + "/" + p.name + "/" + name + ".md";
+		filePath = "";
+	}
+
+	if(filePath.empty()) {
+		throw std::runtime_error("Documentation for " + name + " is not available. ");
+	}
+
+	if(languages.at(0) != "en") {
+		for(const auto & language : languages) {
+			filePath = global::tldrPath + "pages." + language + "/" + platform + "/" + name + ".md";
 			if(stat(filePath.c_str(), &statStruct) == 0 && statStruct.st_mode & S_IFREG) {
-				platform = p.name;
-				goto page_found;
+				break;
 			}
 			filePath = "";
 		}
 	}
-	page_found:
 	
 	if(filePath.empty()) {
-		throw std::runtime_error("Documentation for " + name + " is not available. ");
+		filePath = global::tldrPath + "pages" + "/" + platform + "/" + name + ".md";
 	}
 
 	std::ifstream file(filePath);
