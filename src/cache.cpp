@@ -51,9 +51,10 @@ cache::Structure cache::check() { // TODO: add support for OSX and Windows
 	return tldrStructure;
 }
 
-string cache::getPage(string name, std::vector<cache::Platform> platforms) {
+Page cache::getPage(string name, std::vector<cache::Platform> platforms) {
 	struct stat statStruct;
 	string filePath;
+	string platform;
 	string pagesDir = "pages";
 	std::vector<string> languages = opts::languages;
 	if(languages.empty()) {
@@ -65,9 +66,10 @@ string cache::getPage(string name, std::vector<cache::Platform> platforms) {
 		} else {
 			pagesDir = "pages." + language;
 		}
-		for(const auto & platform : platforms) {
-			filePath = global::tldrPath + pagesDir + "/" + platform.name + "/" + name + ".md";
+		for(const auto & p : platforms) {
+			filePath = global::tldrPath + pagesDir + "/" + p.name + "/" + name + ".md";
 			if(stat(filePath.c_str(), &statStruct) == 0 && statStruct.st_mode & S_IFREG) {
+				platform = p.name;
 				goto page_found;
 			}
 			filePath = "";
@@ -91,5 +93,7 @@ string cache::getPage(string name, std::vector<cache::Platform> platforms) {
 	}
 
 	file.close();
-	return fileContent;
+	Page page(fileContent);
+	page.platform = platform;
+	return page;
 }

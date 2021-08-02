@@ -50,16 +50,18 @@ int main(int argc, char *argv[]) {
 
 	string filePath;
 
+	Page* page;
 	try {
-		filePath = getPage(opts::file, tldrStructure.platforms);
+		page = new Page(getPage(opts::file, tldrStructure.platforms));
 	} catch (const std::runtime_error& e) {
 		std::cerr << e.what() << std::endl;
 		return 1;
 	}
 
-	Page page(filePath);
-	page.format();
-	page.print();
+	page->format();
+	page->print();
+
+	free(page);
 
 	return 0;
 }
@@ -75,5 +77,6 @@ void displayHelp() {
 		"                  When used with --update, this will specify the languages to download\n"
 		"  -p, --platform  Override the default platform\n"
 		"  -v, --verbose:  When used with --update, this will print every file, wich was created or modified\n"
+		"                  When used with --platform, it will show a message when the page was not found in that platform\n"
 		"  -h, --help:     Display this help" << std::endl;
 }

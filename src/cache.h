@@ -6,6 +6,7 @@
 
 #include "global.h"
 #include "opts.h"
+#include "page.h"
 
 namespace cache {
 	class Platform {
@@ -24,5 +25,5 @@ namespace cache {
 
 	Structure check();
 
-	string getPage(string name, std::vector<Platform> platforms);
+	Page getPage(string name, std::vector<Platform> platforms);
 }
