@@ -9,5 +9,6 @@ Options:
   -p, --platform  Override the default platform
   -v, --verbose:  When used with --update, this will print every file, wich was created or modified
                   When used with --platform, it will show a message when the page was not found in that platform
+      --raw       Display the raw Markdown page without formatting
   -h, --help:     Display this help
 ```

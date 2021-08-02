@@ -57,8 +57,9 @@ int main(int argc, char *argv[]) {
 		std::cerr << e.what() << std::endl;
 		return 1;
 	}
-
-	page->format();
+	if(!opts::raw) {
+		page->format();
+	}
 	page->print();
 
 	free(page);
@@ -78,5 +79,6 @@ void displayHelp() {
 		"  -p, --platform  Override the default platform\n"
 		"  -v, --verbose:  When used with --update, this will print every file, wich was created or modified\n"
 		"                  When used with --platform, it will show a message when the page was not found in that platform\n"
+		"      --raw       Display the raw Markdown page without formatting\n"
 		"  -h, --help:     Display this help" << std::endl;
 }

@@ -12,8 +12,9 @@ namespace opts {
 	inline bool update = false;
 	inline std::string file;
 	inline std::vector<string> languages;
-	inline bool verbose;
+	inline bool verbose = false;
 	inline string platform;
+	inline bool raw = false;
 
 	/*
 	Parses a comma-separated list of languages like "en,fr,it" and puts them in a list
@@ -33,9 +34,10 @@ namespace opts {
 		static struct option long_options[] = {
 			{"help", no_argument, NULL, 'h'},
 			{"update", no_argument, NULL, 'u'},
-			{"language", required_argument, NULL, 'u'},
+			{"language", required_argument, NULL, 'l'},
 			{"verbose", no_argument, NULL, 'v'},
 			{"platform", required_argument, NULL, 'p'},
+			{"raw", no_argument, NULL, 'r'},
 			{NULL, 0, NULL, 0},
 		};
 
@@ -57,6 +59,9 @@ namespace opts {
 					break;
 				case 'p':
 					platform = optarg;
+					break;
+				case 'r':
+					raw = true;
 					break;
 			}
 		}
