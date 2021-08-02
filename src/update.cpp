@@ -158,6 +158,8 @@ void printDiff() {
     if(pagesChanged == 0) {
         // this will also be displayed if pages have been removed // TODO
         std::cout << "It had no effect!" << std::endl;
+    } else if (pagesChanged == 1) {
+        std::cout << "1 page updated" << std::endl;
     } else {
         std::cout << pagesChanged << " pages updated" << std::endl;
     }
