@@ -125,7 +125,7 @@ void Page::formatTokenSyntax(string* str) {
                 str->replace(matches.position(), 2, global::color::token);
                 tokenCount++;
         } else if(matches.str() == "}}" && tokenCount == 1) {
-            str->replace(matches.position(), 2, global::color::dfault);
+            str->replace(matches.position(), 2, global::color::command);
             tokenCount--;
         } else if(matches.str() == "{{") {
             // insert 0x07 between braces so they don't get matched again
