@@ -15,6 +15,7 @@ namespace opts {
 	inline bool verbose = false;
 	inline string platform;
 	inline bool raw = false;
+	inline bool stat = false;
 
 	/*
 	Parses a comma-separated list of languages like "en,fr,it" and puts them in a list
@@ -38,12 +39,13 @@ namespace opts {
 			{"verbose", no_argument, NULL, 'v'},
 			{"platform", required_argument, NULL, 'p'},
 			{"raw", no_argument, NULL, 'r'},
+			{"stat", required_argument, NULL, 's'},
 			{NULL, 0, NULL, 0},
 		};
 
 		char opt;
 
-		while((opt = getopt_long(argc, argv, "hul:vp:", long_options, NULL)) != -1) {
+		while((opt = getopt_long(argc, argv, "hul:vp:s:", long_options, NULL)) != -1) {
 			switch(opt) {
 				case 'h':
 					help = true;
@@ -62,6 +64,10 @@ namespace opts {
 					break;
 				case 'r':
 					raw = true;
+					break;
+				case 's':
+					stat = true;
+					file = optarg;
 					break;
 			}
 		}

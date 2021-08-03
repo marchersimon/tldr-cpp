@@ -41,4 +41,6 @@ namespace cache {
 	Page getPage(string name, std::vector<Platform> platforms);
 
 	Index getFromIndex(string name);
+
+	void stat(string name);
 }

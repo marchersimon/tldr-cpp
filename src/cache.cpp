@@ -160,3 +160,54 @@ Page cache::getPage(string name, std::vector<cache::Platform> platforms) {
 	page.platform = platform;
 	return page;
 }
+
+void cache::stat(string name) {
+	cache::Index index;
+	try {
+		index = getFromIndex(name);
+	} catch (const std::runtime_error& e) {
+		if(string(e.what()) == "404") {
+			throw std::runtime_error(name + " does not exist (yet)");
+		} else {
+			throw e;
+		}
+	}
+
+	std::vector<string> languages = {"en", "bs", "da", "de", "es", "fa", "fr", "hi", "id", "it", "ja", "ko", "ml", "nl", "no", "pl",
+									 "pt_BR", "pt_PT", "ru", "sh", "sv", "ta", "th", "tr", "zh", "zh_TW"};
+	if(!opts::languages.empty()) {
+		languages = opts::languages;
+	}
+	std::vector<string> platforms = {"common", "linux", "osx", "android", "windows", "sunos"};
+	if(!opts::platform.empty()) {
+		platforms.clear();
+		platforms.push_back(opts::platform);
+	}
+
+	std::cout << std::endl << "         ";
+
+	for(const auto & l : languages) {
+		std::cout << l << " ";
+	}
+
+	std::cout << std::endl;
+	for(const auto & p : platforms) {
+		std::cout << p;
+		for(int i = p.length(); i < 9; i++) {
+			std::cout << " ";
+		}
+		for(const auto & l : languages) {
+			if(index.contains({p, l})) {
+				std::cout << "\xE2\x9C\x93"; // check mark
+				for(int i = 0; i < l.length(); i++) {
+					std::cout << " ";
+				}
+			} else {
+				for(int i = 0; i < l.length() + 1; i++) {
+					std::cout << " ";
+				}
+			}
+		}
+		std::cout << std::endl;
+	}
+}

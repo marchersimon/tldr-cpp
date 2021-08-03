@@ -19,12 +19,22 @@ int main(int argc, char *argv[]) {
 		displayHelp();
 		return 0;
 	}
-	
+
 	try {
 		cache::init();
 	} catch (const std::runtime_error& e) {
 		std::cerr << e.what() << std::endl;
 		return 1;
+	}
+	
+	if(opts::stat) {
+		try{
+			cache::stat(opts::file);
+		} catch (const std::runtime_error& e) {
+			std::cerr << e.what() << std::endl;
+			return 1;
+		}
+		return 0;
 	}
 
 	if(opts::update) {
@@ -79,6 +89,7 @@ void displayHelp() {
 		"  -p, --platform  Override the default platform\n"
 		"  -v, --verbose:  When used with --update, this will print every file, wich was created or modified\n"
 		"                  When used with --platform, it will show a message when the page was not found in that platform\n"
+		"  -s, --stat      Show the translation status of a command. Results can be narrowed down by --language and --platform\n"
 		"      --raw       Display the raw Markdown page without formatting\n"
 		"  -h, --help:     Display this help" << std::endl;
 }
