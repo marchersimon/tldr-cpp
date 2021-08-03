@@ -16,16 +16,12 @@ void parseEntry(struct zipEntry &entry) {
     int end = 0;
     int i = 0;
 
-    if(entry.path == "index.json") {
-        entry.wanted = false;
-        return;
-    }
-    if(entry.path == "LICENSE.md") {
+    if(entry.path == "index.json" || entry.path == "LICENSE.md") {
         entry.wanted = true;
         entry.isFile = true;
         return;
     }
-
+    
     // this should probably be rewritten sometime
     do {
         end = entry.path.find('/', start);

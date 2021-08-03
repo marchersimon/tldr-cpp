@@ -51,47 +51,103 @@ cache::Structure cache::check() { // TODO: add support for OSX and Windows
 	return tldrStructure;
 }
 
+cache::Index::Target::Target(string platform, string language) {
+	this->language = language;
+	this->platform = platform;
+}
+
+bool cache::Index::contains(cache::Index::Target target) {
+	for(auto & t : targets) {
+		if(t.language == target.language && t.platform == target.platform) {
+			return true;
+		}
+	}
+	return false;
+}
+
+cache::Index cache::getFromIndex(string name) {
+	cache::Index index;
+	std::ifstream file(global::tldrPath + "index.json");
+	if(!file.is_open()) {
+		throw std::runtime_error("Could not open " + global::tldrPath + "index.json");
+	}
+	string fileContent;
+	std::getline(file, fileContent); // whole file only contains 1 newline
+	file.close();
+	int pos = fileContent.find("\"" + name + "\"");
+	if(pos == string::npos) {
+		throw std::runtime_error("404");
+	}
+	pos = fileContent.find("\"targets\"", pos);
+	int nextPos = fileContent.find("]", pos);
+	string targets = fileContent.substr(pos + 11, nextPos - (pos + 11));
+	fileContent.clear(); // to save memory
+
+	pos = 7;
+	while(pos < targets.size()) {
+		nextPos = targets.find("\"", pos);
+		string platform = targets.substr(pos, nextPos - pos);
+		pos = nextPos + 14;
+		nextPos = targets.find("\"", pos);
+		string language = targets.substr(pos, nextPos - pos);
+		index.targets.push_back({platform, language}); // automatically calls Target(platform, language)
+		pos = nextPos + 10;
+	}
+
+	return index;
+}
+
 Page cache::getPage(string name, std::vector<cache::Platform> platforms) {
 	struct stat statStruct;
 	string filePath;
 	string platform;
+	string language;
 	std::vector<string> languages = opts::languages;
-	if(languages.empty()) {
-		languages.push_back("en");
+	languages.push_back("en");
+
+	cache::Index index;
+	try {
+		index = getFromIndex(name);
+	} catch (const std::runtime_error& e) {
+		if(string(e.what()) == "404") {
+			throw std::runtime_error("Documentation for " + name + " is not available");
+		} else {
+			throw e;
+		}
 	}
 
 	for(const auto & p : platforms) {
-
-		filePath = global::tldrPath + "pages" + "/" + p.name + "/" + name + ".md";
-		if(stat(filePath.c_str(), &statStruct) == 0 && statStruct.st_mode & S_IFREG) {
-			platform = p.name;
-			break;
-		}
-		filePath = "";
-	}
-
-	if(filePath.empty()) {
-		throw std::runtime_error("Documentation for " + name + " is not available. ");
-	}
-
-	if(languages.at(0) != "en") {
-		for(const auto & language : languages) {
-			filePath = global::tldrPath + "pages." + language + "/" + platform + "/" + name + ".md";
-			if(stat(filePath.c_str(), &statStruct) == 0 && statStruct.st_mode & S_IFREG) {
-				break;
+		for(const auto & l : languages) {
+			if(index.contains({p.name, l})) {
+				if(l == "en") {
+					filePath = global::tldrPath + "pages/" + p.name + "/" + name + ".md";
+				} else {
+					filePath = global::tldrPath + "pages." + l + "/" + p.name + "/" + name + ".md";
+				}
+				platform = p.name;
+				language = l;
+				goto foundFile;
 			}
-			filePath = "";
 		}
 	}
-	
-	if(filePath.empty()) {
-		filePath = global::tldrPath + "pages" + "/" + platform + "/" + name + ".md";
-	}
+
+	std::cout << "You shouldn't be able to see this." << std::endl;
+
+	foundFile:
 
 	std::ifstream file(filePath);
 
 	if(file.is_open() == false) {
-		throw std::runtime_error("Could not open file " + filePath);
+		if(language == "en") {
+			throw std::runtime_error(filePath + " dissapeared. Try updating your cache.");
+		} else {
+			string languageDir = global::tldrPath + "pages." + language;
+			if(stat(languageDir.c_str(), &statStruct) != 0) {
+				throw std::runtime_error("Language " + language + " is not installed. You can install it with \"tldr -l " + language + " -u\" or install all languages with \"tldr -u\"");
+			} else {
+				throw std::runtime_error(filePath + " dissapeared. Try updating your cache.");
+			}
+		}
 	}
 	string line;
 	string fileContent;

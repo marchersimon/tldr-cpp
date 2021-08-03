@@ -21,9 +21,24 @@ namespace cache {
 			void sortPlatforms();
 	};
 
+	class Index {
+		public:
+			class Target {
+				public:
+					Target(string platform, string language);
+					string platform;
+					string language;
+			};
+
+		std::vector<Target> targets;
+		bool contains(Target target);
+	};
+
 	void init();
 
 	Structure check();
 
 	Page getPage(string name, std::vector<Platform> platforms);
+
+	Index getFromIndex(string name);
 }
