@@ -30,5 +30,3 @@ sudo make install
 ```
 sudo rm /usr/bin/local/tldr
 ```
-
-
