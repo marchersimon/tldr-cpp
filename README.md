@@ -1,3 +1,7 @@
+# A TL;DR client made in C++ 
+
+## Usage
+
 ```
 Usage: tldr [options] [command]
 
@@ -13,3 +17,18 @@ Options:
       --raw       Display the raw Markdown page without formatting
   -h, --help:     Display this help
 ```
+
+## Installation 
+
+```
+make build 
+sudo make install
+```
+
+## Removal
+
+```
+sudo rm /usr/bin/local/tldr
+```
+
+
