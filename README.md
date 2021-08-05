@@ -1,3 +1,7 @@
+# The all-in-one TL;DR client for users and contributors
+
+## Usage
+
 ```
 Usage: tldr [options] [command]
 
@@ -12,4 +16,17 @@ Options:
   -s, --stat      Show the translation status of a command. Results can be narrowed down by --language and --platform
       --raw       Display the raw Markdown page without formatting
   -h, --help:     Display this help
+```
+
+## Installation 
+
+```shell
+make build 
+sudo make install
+```
+
+## Removal
+
+```shell
+sudo rm /usr/bin/tldr
 ```
