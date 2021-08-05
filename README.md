@@ -1,4 +1,4 @@
-# A TL;DR client made in C++ 
+# The all-in-one TL;DR client for users and contributors
 
 ## Usage
 
@@ -28,5 +28,5 @@ sudo make install
 ## Removal
 
 ```
-sudo rm /usr/bin/local/tldr
+sudo rm /usr/bin/tldr
 ```
