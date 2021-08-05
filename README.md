@@ -20,13 +20,13 @@ Options:
 
 ## Installation 
 
-```
+```shell
 make build 
 sudo make install
 ```
 
 ## Removal
 
-```
+```shell
 sudo rm /usr/bin/tldr
 ```
