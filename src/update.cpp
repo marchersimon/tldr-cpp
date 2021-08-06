@@ -48,11 +48,11 @@ void parseEntry(struct zipEntry &entry) {
     } while(end != std::string::npos);
 
     // only extract the page if the language is in the list
-    if(opts::languages.empty()) {
+    if(global::opts::languages.empty()) {
         entry.wanted = true;
     } else if(entry.language == "en") {
         entry.wanted = true;
-    } else if(std::find(opts::languages.begin(), opts::languages.end(), entry.language) != opts::languages.end()){
+    } else if(std::find(global::opts::languages.begin(), global::opts::languages.end(), entry.language) != global::opts::languages.end()){
         entry.wanted = true;
     }
 }
@@ -131,7 +131,7 @@ void printDiff() {
         oldPath.insert(tldrPathLenght - 1, ".old");
         std::ifstream fileStream2(oldPath);
         if(!fileStream2.is_open()) {
-            if(opts::verbose) {
+            if(global::opts::verbose) {
                 std::cout << "Created:  " << entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght) << std::endl;
             }
             pagesChanged++;
@@ -145,7 +145,7 @@ void printDiff() {
         fileStream2.close();
         size_t hash2 = hash(file2);
         if(hash1 != hash2) {
-            if(opts::verbose) {
+            if(global::opts::verbose) {
                 std::cout << "Modified: " << entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght) << std::endl;
             }
             pagesChanged++;

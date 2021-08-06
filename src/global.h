@@ -1,17 +1,31 @@
 #pragma once
 
-#include <iostream>
+#include <string>
+#include <vector>
 
 using std::string;
+using std::vector;
 
 namespace global {
-	inline string tldrPath;
-	inline string HOME;
+
+	namespace opts {
+		extern bool help;
+		extern bool update;
+		extern string file;
+		extern vector<string> languages;
+		extern bool verbose;
+		extern string platform;
+		extern bool raw;
+		extern bool stat;
+	}
+
+	extern string tldrPath;
+	extern string HOME;
 	namespace color {
-		inline string dfault = "\033[0m";
-		inline string title = "\033[1;38;2;200;50;50m"; // bold;set-fg-color;rgb;<r>;<g>;<b>m
-		inline string backtick = "\033[38;5;110m";
-		inline string command = "\033[38;2;200;100;150m";
-		inline string token = "\033[38;2;40;215;66m";
+		extern string dfault;
+		extern string title;
+		extern string backtick;
+		extern string command;
+		extern string token;
 	}
 }

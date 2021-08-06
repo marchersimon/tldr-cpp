@@ -24,7 +24,7 @@ This sorts the list of platforms, so that the preferred one is at first position
 */
 void cache::Structure::sortPlatforms() {
 	for(auto & platform : platforms) {
-		if(platform.name == opts::platform) {
+		if(platform.name == global::opts::platform) {
 			std::swap(platforms.at(0), platform);
 		}
 		if(platform.name == "common") {
@@ -102,7 +102,7 @@ Page cache::getPage(string name, std::vector<cache::Platform> platforms) {
 	string filePath;
 	string platform;
 	string language;
-	std::vector<string> languages = opts::languages;
+	std::vector<string> languages = global::opts::languages;
 	languages.push_back("en");
 
 	cache::Index index;
@@ -175,13 +175,13 @@ void cache::stat(string name) {
 
 	std::vector<string> languages = {"en", "bs", "da", "de", "es", "fa", "fr", "hi", "id", "it", "ja", "ko", "ml", "nl", "no", "pl",
 									 "pt_BR", "pt_PT", "ru", "sh", "sv", "ta", "th", "tr", "zh", "zh_TW"};
-	if(!opts::languages.empty()) {
-		languages = opts::languages;
+	if(!global::opts::languages.empty()) {
+		languages = global::opts::languages;
 	}
 	std::vector<string> platforms = {"common", "linux", "osx", "android", "windows", "sunos"};
-	if(!opts::platform.empty()) {
+	if(!global::opts::platform.empty()) {
 		platforms.clear();
-		platforms.push_back(opts::platform);
+		platforms.push_back(global::opts::platform);
 	}
 
 	std::cout << std::endl << "         ";

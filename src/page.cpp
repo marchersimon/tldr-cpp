@@ -40,7 +40,7 @@ string Page::getLine() {
 }
 
 void Page::print() {
-    if(!opts::platform.empty() && platform != opts::platform && opts::verbose) {
+    if(!global::opts::platform.empty() && platform != global::opts::platform && global::opts::verbose) {
         std::cout << "Displaying page from platform " << platform << "." << std::endl;
     }
     

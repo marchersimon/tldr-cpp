@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
 
 	opts::parse(argc, argv);
 
-	if(opts::help) {
+	if(global::opts::help) {
 		displayHelp();
 		return 0;
 	}
@@ -27,9 +27,9 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 	
-	if(opts::stat) {
+	if(global::opts::stat) {
 		try{
-			cache::stat(opts::file);
+			cache::stat(global::opts::file);
 		} catch (const std::runtime_error& e) {
 			std::cerr << e.what() << std::endl;
 			return 1;
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
-	if(opts::update) {
+	if(global::opts::update) {
 		try{
 			updateCache();
 		} catch (const std::runtime_error& e) {
@@ -62,12 +62,12 @@ int main(int argc, char *argv[]) {
 
 	Page* page;
 	try {
-		page = new Page(getPage(opts::file, tldrStructure.platforms));
+		page = new Page(getPage(global::opts::file, tldrStructure.platforms));
 	} catch (const std::runtime_error& e) {
 		std::cerr << e.what() << std::endl;
 		return 1;
 	}
-	if(!opts::raw) {
+	if(!global::opts::raw) {
 		page->format();
 	}
 	page->print();
