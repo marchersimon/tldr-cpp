@@ -8,6 +8,8 @@ using std::vector;
 
 namespace global {
 
+	extern vector<string> platforms;
+
 	namespace opts {
 		extern bool help;
 		extern bool update;
@@ -21,6 +23,7 @@ namespace global {
 
 	extern string tldrPath;
 	extern string HOME;
+
 	namespace color {
 		extern string dfault;
 		extern string title;
@@ -28,4 +31,6 @@ namespace global {
 		extern string command;
 		extern string token;
 	}
+
+	void init();
 }

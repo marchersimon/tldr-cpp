@@ -8,6 +8,11 @@
 #include "update.h"
 #include "page.h"
 
+#define trycatch(...)	try {__VA_ARGS__;} \
+						catch (const std::runtime_error& e) { \
+					  		std::cerr << e.what() << std::endl; \
+							return 1; \
+						}
 
 void displayHelp();
 
@@ -20,59 +25,31 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 
-	try {
-		cache::init();
-	} catch (const std::runtime_error& e) {
-		std::cerr << e.what() << std::endl;
-		return 1;
-	}
+	trycatch(global::init());
 	
-	if(global::opts::stat) {
-		try{
-			cache::stat(global::opts::file);
-		} catch (const std::runtime_error& e) {
-			std::cerr << e.what() << std::endl;
-			return 1;
-		}
-		return 0;
-	}
-
 	if(global::opts::update) {
-		try{
-			updateCache();
-		} catch (const std::runtime_error& e) {
-			std::cerr << e.what() << std::endl;
-			return 1;
-		}
+		trycatch(updateCache())
 		return 0;
 	}
 
-	cache::Structure tldrStructure;
+	trycatch(cache::verify());
 
-	try{
-		tldrStructure = cache::check();
-	} catch (const std::runtime_error& e) {
-		std::cerr << e.what() << std::endl;
-		return 1;
+	if(global::opts::stat) {
+		trycatch(cache::stat(global::opts::file));
+		return 0;
 	}
 
-	tldrStructure.sortPlatforms();
+	trycatch(cache::findPlatforms());
 
 	string filePath;
 
-	Page* page;
-	try {
-		page = new Page(getPage(global::opts::file, tldrStructure.platforms));
-	} catch (const std::runtime_error& e) {
-		std::cerr << e.what() << std::endl;
-		return 1;
-	}
-	if(!global::opts::raw) {
-		page->format();
-	}
-	page->print();
+	Page page = Page();
+	trycatch(page = Page(cache::getPage(global::opts::file)));
 
-	free(page);
+	if(!global::opts::raw) {
+		page.format();
+	}
+	page.print();
 
 	return 0;
 }

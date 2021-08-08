@@ -5,21 +5,9 @@
 #include <fstream>
 
 #include "global.h"
-#include "opts.h"
 #include "page.h"
 
 namespace cache {
-	class Platform {
-		public:
-			string name;
-			int numberOfPages = 0;
-	};
-
-	class Structure {
-		public:
-			std::vector<Platform> platforms;
-			void sortPlatforms();
-	};
 
 	class Index {
 		public:
@@ -34,11 +22,11 @@ namespace cache {
 		bool contains(Target target);
 	};
 
-	void init();
+	void verify();
 
-	Structure check();
+	void findPlatforms();
 
-	Page getPage(string name, std::vector<Platform> platforms);
+	Page getPage(string name);
 
 	Index getFromIndex(string name);
 

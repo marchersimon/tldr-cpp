@@ -26,6 +26,7 @@ class Page {
         string platform;
 
         Page(string content);
+        Page();
 
         void print();
         void format();

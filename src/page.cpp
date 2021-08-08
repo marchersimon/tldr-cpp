@@ -28,6 +28,8 @@ Page::Page(string content) {
     }
 }
 
+Page::Page() {}
+
 string Page::getLine() {
     string line;
     int nextEOL = content.find('\n', pos);

@@ -1,54 +1,43 @@
 #include "cache.h"
 
 /*
-This function gets the path to the cache and makes sure it exists
+This function makes sure the local cache isn't empty
 */
-void cache::init() {
-	// get path to $HOME
-	global::HOME = getenv("HOME");
-	if(global::HOME.empty()) {
-		throw std::runtime_error("Environment variable $HOME not set");
-	}
-
-	// check if page cache exists at $HOME/.cache/tldr and create it if not
-	global::tldrPath = global::HOME + "/.tldr/cache/";
+void cache::verify() {
 	struct stat statStruct;
-	if(stat(global::tldrPath.c_str(), &statStruct) != 0) {
-		std::filesystem::create_directory(global::HOME + "/.tldr/");
-		std::filesystem::create_directory(global::HOME + "/.tldr/cache/");
+	string tldrPagePath = global::tldrPath + "pages/";
+	if(stat(tldrPagePath.c_str(), &statStruct) != 0) {
+		throw std::runtime_error("The local cache is still empty. Run tldr -u to update it");
 	}
 }
 
 /*
-This sorts the list of platforms, so that the preferred one is at first position and "common" is at second
+This function returns a sorted list of installed platforms
 */
-void cache::Structure::sortPlatforms() {
+void cache::findPlatforms() {
+
+	vector<string> platforms;
+
+	// get list of platforms
+	for(const auto & entry : std::filesystem::directory_iterator(global::tldrPath + "pages/")) {// needs C++17
+		string newPlatform;
+		string path = entry.path();
+		int pos = path.find_last_of('/') + 1;
+		newPlatform = path.substr(pos);
+		platforms.push_back(newPlatform);
+	}
+
+	// sort the list, so that the preferred one will be first and common will be second
 	for(auto & platform : platforms) {
-		if(platform.name == global::opts::platform) {
+		if(platform == global::opts::platform) {
 			std::swap(platforms.at(0), platform);
 		}
-		if(platform.name == "common") {
+		if(platform == "common") {
 			std::swap(platforms.at(1), platform);
 		}
 	}
-}
 
-cache::Structure cache::check() { // TODO: add support for OSX and Windows
-
-	// get the structure of the tldr cache (platforms and number of pages per platform)
-	cache::Structure tldrStructure;
-
-	for(const auto & entry : std::filesystem::directory_iterator(global::tldrPath + "pages/")) {// needs C++17
-		cache::Platform newPlatform;
-		string path = entry.path();
-		int pos = path.find_last_of('/') + 1;
-		newPlatform.name = path.substr(pos);
-		for(const auto & subentry : std::filesystem::directory_iterator(path)) {
-			newPlatform.numberOfPages++;
-		}
-		tldrStructure.platforms.push_back(newPlatform);
-	}
-	return tldrStructure;
+	global::platforms = platforms;
 }
 
 cache::Index::Target::Target(string platform, string language) {
@@ -56,6 +45,9 @@ cache::Index::Target::Target(string platform, string language) {
 	this->platform = platform;
 }
 
+/*
+This function checks wheter a page in the index exists in a specific language-platform combination
+*/
 bool cache::Index::contains(cache::Index::Target target) {
 	for(auto & t : targets) {
 		if(t.language == target.language && t.platform == target.platform) {
@@ -65,8 +57,10 @@ bool cache::Index::contains(cache::Index::Target target) {
 	return false;
 }
 
+/*
+This function searches index.json for a specific page and returns all its targets as Index object
+*/
 cache::Index cache::getFromIndex(string name) {
-	cache::Index index;
 	std::ifstream file(global::tldrPath + "index.json");
 	if(!file.is_open()) {
 		throw std::runtime_error("Could not open " + global::tldrPath + "index.json");
@@ -74,16 +68,19 @@ cache::Index cache::getFromIndex(string name) {
 	string fileContent;
 	std::getline(file, fileContent); // whole file only contains 1 newline
 	file.close();
+	// find the page in the file
 	int pos = fileContent.find("\"" + name + "\"");
 	if(pos == string::npos) {
 		throw std::runtime_error("404");
 	}
 	pos = fileContent.find("\"targets\"", pos);
 	int nextPos = fileContent.find("]", pos);
+	// extract that part with all the targets
 	string targets = fileContent.substr(pos + 11, nextPos - (pos + 11));
 	fileContent.clear(); // to save memory
 
 	pos = 7;
+	cache::Index index;
 	while(pos < targets.size()) {
 		nextPos = targets.find("\"", pos);
 		string platform = targets.substr(pos, nextPos - pos);
@@ -97,7 +94,10 @@ cache::Index cache::getFromIndex(string name) {
 	return index;
 }
 
-Page cache::getPage(string name, std::vector<cache::Platform> platforms) {
+/*
+This function gets the content of a specific page in the correct language from the correct directory and returns it as Page object
+*/
+Page cache::getPage(string name) {
 	struct stat statStruct;
 	string filePath;
 	string platform;
@@ -116,15 +116,15 @@ Page cache::getPage(string name, std::vector<cache::Platform> platforms) {
 		}
 	}
 
-	for(const auto & p : platforms) {
+	for(const auto & p : global::platforms) {
 		for(const auto & l : languages) {
-			if(index.contains({p.name, l})) {
+			if(index.contains({p, l})) {
 				if(l == "en") {
-					filePath = global::tldrPath + "pages/" + p.name + "/" + name + ".md";
+					filePath = global::tldrPath + "pages/" + p + "/" + name + ".md";
 				} else {
-					filePath = global::tldrPath + "pages." + l + "/" + p.name + "/" + name + ".md";
+					filePath = global::tldrPath + "pages." + l + "/" + p + "/" + name + ".md";
 				}
-				platform = p.name;
+				platform = p;
 				language = l;
 				goto foundFile;
 			}
@@ -161,6 +161,9 @@ Page cache::getPage(string name, std::vector<cache::Platform> platforms) {
 	return page;
 }
 
+/*
+Print platform and translation status of a specific page
+*/
 void cache::stat(string name) {
 	cache::Index index;
 	try {

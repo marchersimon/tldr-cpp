@@ -15,6 +15,9 @@ void opts::parseLanguages(char* optarg) {
 	}
 }
 
+/*
+Parses all command line argument and saves them to global::opts::...
+*/
 void opts::parse(int argc, char* argv[]) {
 
 	static struct option long_options[] = {
@@ -57,7 +60,8 @@ void opts::parse(int argc, char* argv[]) {
 		}
 	}
 
-	if(optind < argc) { // if there are remaining arguments -> the page name
+    // if there are remaining arguments -> the page name
+	if(optind < argc) {
 		file = argv[optind];
 	}
 	for(int i = optind + 1; i < argc; i++) {
