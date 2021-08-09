@@ -17,6 +17,7 @@ namespace global {
 		string platform;
 		bool raw = false;
 		bool stat = false;
+		bool render = false;
 	}
 
 	string tldrPath;

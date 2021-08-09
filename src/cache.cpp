@@ -95,6 +95,25 @@ cache::Index cache::getFromIndex(string name) {
 }
 
 /*
+This function gets a Page from any path. Used for --render
+*/
+Page cache::getPageFromPath(string path) {
+	std::ifstream file(path);
+	if(!file.is_open()) {
+		throw std::runtime_error("File " + path + " could not be opened");
+	}
+
+	string line;
+	string fileContent;
+	while(std::getline(file, line)) {
+		fileContent += line + '\n';
+	}
+	file.close();
+	Page page(fileContent);
+	return page;
+}
+
+/*
 This function gets the content of a specific page in the correct language from the correct directory and returns it as Page object
 */
 Page cache::getPage(string name) {

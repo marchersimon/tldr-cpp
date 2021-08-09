@@ -28,6 +28,8 @@ namespace cache {
 
 	Page getPage(string name);
 
+	Page getPageFromPath(string path);
+
 	Index getFromIndex(string name);
 
 	void stat(string name);

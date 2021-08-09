@@ -15,6 +15,7 @@ Options:
                   When used with --platform, it will show a message when the page was not found in that platform
   -s, --stat      Show the translation status of a command. Results can be narrowed down by --language and --platform
       --raw       Display the raw Markdown page without formatting
+  -r, --render    Specify the path to a custom Markdown page to render
   -h, --help:     Display this help
 ```
 

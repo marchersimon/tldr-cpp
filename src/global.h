@@ -19,6 +19,7 @@ namespace global {
 		extern string platform;
 		extern bool raw;
 		extern bool stat;
+		extern bool render;
 	}
 
 	extern string tldrPath;

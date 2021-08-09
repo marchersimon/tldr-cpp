@@ -26,7 +26,17 @@ int main(int argc, char *argv[]) {
 	}
 
 	trycatch(global::init());
-	
+
+	if(global::opts::render) {
+		Page page;
+		trycatch(page = cache::getPageFromPath(global::opts::file));
+		if(!global::opts::raw) {
+			page.format();
+		}
+		page.print();
+		return 0;
+	}
+
 	if(global::opts::update) {
 		trycatch(updateCache())
 		return 0;
@@ -43,7 +53,7 @@ int main(int argc, char *argv[]) {
 
 	string filePath;
 
-	Page page = Page();
+	Page page;
 	trycatch(page = Page(cache::getPage(global::opts::file)));
 
 	if(!global::opts::raw) {
@@ -67,6 +77,7 @@ void displayHelp() {
 		"  -v, --verbose:  When used with --update, this will print every file, wich was created or modified\n"
 		"                  When used with --platform, it will show a message when the page was not found in that platform\n"
 		"  -s, --stat      Show the translation status of a command. Results can be narrowed down by --language and --platform\n"
+		"  -r, --render    Specify the path to a custom Markdown page to render\n"
 		"      --raw       Display the raw Markdown page without formatting\n"
 		"  -h, --help:     Display this help" << std::endl;
 }
