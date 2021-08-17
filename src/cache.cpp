@@ -196,7 +196,7 @@ void cache::stat(string name) {
 	}
 
 	std::vector<string> languages = {"en", "bs", "da", "de", "es", "fa", "fr", "hi", "id", "it", "ja", "ko", "ml", "nl", "no", "pl",
-									 "pt_BR", "pt_PT", "ru", "sh", "sv", "ta", "th", "tr", "zh", "zh_TW"};
+									 "pt_BR", "pt_PT", "ro", "ru", "sh", "sv", "ta", "th", "tr", "zh", "zh_TW"};
 	if(!global::opts::languages.empty()) {
 		languages = global::opts::languages;
 	}
