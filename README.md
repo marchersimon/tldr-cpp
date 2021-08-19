@@ -26,6 +26,12 @@ make build
 sudo make install
 ```
 
+## Arch-based
+
+```shell
+yay -S tldr-cpp-git
+```
+
 ## Removal
 
 ```shell
