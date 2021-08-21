@@ -25,7 +25,7 @@ int libcurl_ProgressCallback(void* ptr, double dltotal, double dlnow, double uto
 
 size_t libcurl_WriteCallback(char* buffer, size_t itemsize, size_t nitems, void* tldrZipPtr);
 
-void downloadZip(string path);
+vector<char> downloadZip();
 
 void printDiff();
 

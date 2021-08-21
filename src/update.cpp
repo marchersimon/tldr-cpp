@@ -70,31 +70,35 @@ int libcurl_ProgressCallback(void* ptr, double dltotal, double dlnow, double uto
 }
 
 /*
-This function gets called every time a new chunk is downloaded and writes it to the filestream tldrZip
+This function gets called every time a new chunk is downloaded and adds it to the buffer
 */
-size_t libcurl_WriteCallback(char* buffer, size_t itemsize, size_t nitems, void* tldrZipPtr) {
+size_t libcurl_WriteCallback(char* downloadBuffer, size_t itemsize, size_t nitems, void* bufferPtr) {
     size_t bytes = itemsize * nitems;
-    std::ofstream* tldrZip = (std::ofstream*)tldrZipPtr;
-    tldrZip->write(buffer, bytes);
+    vector<char>* buffer = (vector<char>*)bufferPtr;
+    int offset = buffer->size();
+    buffer->resize(offset + bytes);
+    for(int i = 0; i < bytes; i++) {
+        buffer->at(i + offset) = downloadBuffer[i];
+    }
     return bytes; // this is needed by libcurl
 }
 
-// This function downloads the zip file to a specific path
-void downloadZip(string path) {
+// This function downloads the zip file into memory
+vector<char> downloadZip() {
     CURL* curl = curl_easy_init();
     if(!curl) {
         throw std::runtime_error("To put it in the words of the libcurl docs: Something went wrong");
     }
-    std::ofstream tldrZip(path);
+
+    vector<char> buffer;
 
     curl_easy_setopt(curl, CURLOPT_URL, "https://tldr.sh/assets/tldr.zip");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, libcurl_WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&tldrZip);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&buffer);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, libcurl_ProgressCallback);
     CURLcode res = curl_easy_perform(curl);
 
-    tldrZip.close();
     curl_easy_cleanup(curl);
     if(res != CURLE_OK) {
     }
@@ -108,6 +112,7 @@ void downloadZip(string path) {
             throw std::runtime_error("Could not download cache: Error code " + std::to_string(res) + ". More at https://curl.se/libcurl/c/libcurl-errors.html.");
 
     }
+    return buffer;
 }
 
 void printDiff() {
@@ -163,8 +168,7 @@ void printDiff() {
 
 void updateCache() {
 
-    string zipPath = "/tmp/tldr.zip";
-    downloadZip(zipPath);
+    vector<char> zipVector = downloadZip();
     std::cout << std::endl << "[2/2] Exctracting..." << std::endl;
 
     // remove any ~/.tldr/cache.old directory, just to make sure
@@ -176,10 +180,12 @@ void updateCache() {
     // create new empty cache directory
     std::filesystem::create_directory(global::tldrPath);
 
-    int err = 0; // TODO
-    zip* archive = zip_open("/tmp/tldr.zip", 0, &err);
+    char* zipBuffer = &zipVector[0];
+    zip_error_t err; // TODO
+    zip_source_t* zipsource = zip_source_buffer_create((void*)zipBuffer, zipVector.size(), 1, &err); // this will free zipBuffer with zip_close();
+    zip* archive = zip_open_from_source(zipsource, 0, &err);
 	if(!archive) {
-		throw std::runtime_error("Could not open archive at " + zipPath);
+		throw std::runtime_error("Error opening the downloaded archive");
 	}
     struct zipEntry entry;
 
@@ -207,7 +213,6 @@ void updateCache() {
         }
 	}
 	zip_close(archive);
-    std::filesystem::remove(zipPath);
     printDiff();
 
     std::filesystem::remove_all(global::HOME + "/.tldr/cache.old");
