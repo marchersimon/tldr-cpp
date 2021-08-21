@@ -182,7 +182,7 @@ void updateCache() {
 
     char* zipBuffer = &zipVector[0];
     zip_error_t err; // TODO
-    zip_source_t* zipsource = zip_source_buffer_create((void*)zipBuffer, zipVector.size(), 1, &err); // this will free zipBuffer with zip_close();
+    zip_source_t* zipsource = zip_source_buffer_create((void*)zipBuffer, zipVector.size(), 0, &err);
     zip* archive = zip_open_from_source(zipsource, 0, &err);
 	if(!archive) {
 		throw std::runtime_error("Error opening the downloaded archive");
@@ -213,7 +213,7 @@ void updateCache() {
         }
 	}
 	zip_close(archive);
+    zipVector.clear();
     printDiff();
-
     std::filesystem::remove_all(global::HOME + "/.tldr/cache.old");
 }
