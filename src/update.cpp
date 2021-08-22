@@ -4,7 +4,7 @@
 Parses the path to an entry in the zip file. It extracts the language code, platform and file name. 
 The path can be "pages(.xyz)/", "pages(.xyz)/platform/" or "pages(.xyz)/platform/filename.md".
 */
-void parseEntry(struct zipEntry &entry) {
+void parseEntry(struct zipEntry &entry, vector<string> & installedLanguages) {
 
     entry.isFile = false;
     entry.wanted = false;
@@ -47,11 +47,13 @@ void parseEntry(struct zipEntry &entry) {
         i++;
     } while(end != std::string::npos);
 
-    // only extract the page if the language is in the list
-    if(global::opts::languages.empty()) {
+    // only extract the page if the language was provided with -l or if nothing was provided check if the language was already installed
+    if(entry.language == "en" || global::opts::update_all == true) {
         entry.wanted = true;
-    } else if(entry.language == "en") {
-        entry.wanted = true;
+    } else if(global::opts::languages.empty()) {
+        if(std::find(installedLanguages.begin(), installedLanguages.end(), entry.language) != installedLanguages.end()) {
+            entry.wanted = true;
+        }
     } else if(std::find(global::opts::languages.begin(), global::opts::languages.end(), entry.language) != global::opts::languages.end()){
         entry.wanted = true;
     }
@@ -166,6 +168,24 @@ void printDiff() {
     }
 }
 
+vector<string> getInstalledLanguages() {
+    vector<string> installedLanguages;
+    for(const auto & entry : std::filesystem::directory_iterator(global::HOME + "/.tldr/cache.old/")) {// needs C++17
+		string path = entry.path();
+        int pos = path.find_last_of('/');
+        if(path[pos + 1] != 'p') {// if it's not "pages"
+            continue;
+        }
+        pos += 7; // skip "pages."
+        if(pos == path.length() + 1) { // this is the case with en, which will be added either way
+            continue;
+        }
+        string language = path.substr(pos, path.length() - pos);
+        installedLanguages.push_back(language);
+	}
+    return installedLanguages;
+}
+
 void updateCache() {
 
     vector<char> zipVector = downloadZip();
@@ -189,10 +209,12 @@ void updateCache() {
 	}
     struct zipEntry entry;
 
+    vector<string> installedLanguages = getInstalledLanguages(); // needed in parseEntry()
+
 	zip_int64_t numEntries = zip_get_num_entries(archive, 0);
 	for(int i = 0; i < numEntries; i++) {
         entry.path = zip_get_name(archive, i, 0);
-        parseEntry(entry);
+        parseEntry(entry, installedLanguages);
         if(!entry.wanted) {
             continue;
         }

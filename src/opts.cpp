@@ -29,12 +29,13 @@ void opts::parse(int argc, char* argv[]) {
 		{"raw", no_argument, NULL, 'm'},
 		{"stat", required_argument, NULL, 's'},
 		{"render", required_argument, NULL, 'r'},
+		{"all", no_argument, NULL, 'a'},
 		{NULL, 0, NULL, 0},
 	};
 
 	char opt;
 
-	while((opt = getopt_long(argc, argv, "hul:vp:s:r:", long_options, NULL)) != -1) {
+	while((opt = getopt_long(argc, argv, "hul:vp:s:r:a", long_options, NULL)) != -1) {
 		switch(opt) {
 			case 'h':
 				help = true;
@@ -61,6 +62,9 @@ void opts::parse(int argc, char* argv[]) {
 			case 'r':
 				render = true;
 				file = optarg;
+				break;
+			case 'a':
+				update_all = true;
 				break;
 		}
 	}

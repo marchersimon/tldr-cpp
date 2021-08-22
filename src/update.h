@@ -19,7 +19,7 @@ struct zipEntry {
     std::string filename;
 };
 
-void parseEntry(struct zipEntry &entry);
+void parseEntry(struct zipEntry &entry, vector<string> &InstalledLanguages);
 
 int libcurl_ProgressCallback(void* ptr, double dltotal, double dlnow, double utotal, double ulnow);
 
@@ -28,5 +28,7 @@ size_t libcurl_WriteCallback(char* buffer, size_t itemsize, size_t nitems, void*
 vector<char> downloadZip();
 
 void printDiff();
+
+vector<string> getInstalledLanguages();
 
 void updateCache();

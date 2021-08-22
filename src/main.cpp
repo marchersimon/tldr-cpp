@@ -69,7 +69,7 @@ void displayHelp() {
 		"Usage: tldr [options] [command]\n"
 		"\n"
 		"Options:\n"
-		"  -u, --update:   Update the local tldr cache\n"
+		"  -u, --update:   Update all currently installed languages in the local tldr cache\n"
 		"  -l, --language: Specify a comma-separated list of language codes, like \"fr,it\"\n"
 		"                  Pages will be searched for in this order. If nothing is found it will default to \"en\"\n"
 		"                  When used with --update, this will specify the languages to download\n"
@@ -79,5 +79,6 @@ void displayHelp() {
 		"  -s, --stat      Show the translation status of a command. Results can be narrowed down by --language and --platform\n"
 		"  -r, --render    Specify the path to a custom Markdown page to render\n"
 		"      --raw       Display the raw Markdown page without formatting\n"
+		"  -a, --all       When used with --update, this updates all languages, instead of just the installed ones\n"
 		"  -h, --help:     Display this help" << std::endl;
 }

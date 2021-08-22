@@ -18,6 +18,7 @@ namespace global {
 		bool raw = false;
 		bool stat = false;
 		bool render = false;
+		bool update_all = false;
 	}
 
 	string tldrPath;

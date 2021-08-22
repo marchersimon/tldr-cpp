@@ -20,6 +20,7 @@ namespace global {
 		extern bool raw;
 		extern bool stat;
 		extern bool render;
+		extern bool update_all;
 	}
 
 	extern string tldrPath;

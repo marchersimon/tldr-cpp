@@ -6,7 +6,7 @@
 Usage: tldr [options] [command]
 
 Options:
-  -u, --update:   Update the local tldr cache
+  -u, --update:   Update all currently installed languages in the local tldr cache
   -l, --language: Specify a comma-separated list of language codes, like "fr,it"
                   Pages will be searched for in this order. If nothing is found it will default to "en"
                   When used with --update, this will specify the languages to download
@@ -16,6 +16,7 @@ Options:
   -s, --stat      Show the translation status of a command. Results can be narrowed down by --language and --platform
       --raw       Display the raw Markdown page without formatting
   -r, --render    Specify the path to a custom Markdown page to render
+  -a, --all       When used with --update, this updates all languages, instead of just the installed ones
   -h, --help:     Display this help
 ```
 
