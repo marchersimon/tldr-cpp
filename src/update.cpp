@@ -48,7 +48,7 @@ void parseEntry(struct zipEntry &entry, vector<string> & installedLanguages) {
     } while(end != std::string::npos);
 
     // only extract the page if the language was provided with -l or if nothing was provided check if the language was already installed
-    if(entry.language == "en" || global::opts::update_all == true) {
+    if(entry.language == "en" || global::opts::update_all == true | installedLanguages.empty()) {
         entry.wanted = true;
     } else if(global::opts::languages.empty()) {
         if(std::find(installedLanguages.begin(), installedLanguages.end(), entry.language) != installedLanguages.end()) {
@@ -177,7 +177,8 @@ vector<string> getInstalledLanguages() {
             continue;
         }
         pos += 7; // skip "pages."
-        if(pos == path.length() + 1) { // this is the case with en, which will be added either way
+        if(pos == path.length() + 1) {
+            installedLanguages.push_back("en");
             continue;
         }
         string language = path.substr(pos, path.length() - pos);
