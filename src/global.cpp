@@ -29,6 +29,7 @@ namespace global {
 		string backtick = "\033[38;5;110m";
 		string command = "\033[38;2;200;100;150m";
 		string token = "\033[38;2;40;215;66m";
+		string stat_checkmark = "\033[1;32m";
 	}
 }
 

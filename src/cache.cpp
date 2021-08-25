@@ -220,7 +220,7 @@ void cache::stat(string name) {
 		}
 		for(const auto & l : languages) {
 			if(index.contains({p, l})) {
-				std::cout << "\xE2\x9C\x93"; // check mark
+				std::cout << global::color::stat_checkmark + "\xE2\x9C\x94" + global::color::dfault; // check mark
 				for(int i = 0; i < l.length(); i++) {
 					std::cout << " ";
 				}

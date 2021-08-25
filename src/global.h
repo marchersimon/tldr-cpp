@@ -32,6 +32,7 @@ namespace global {
 		extern string backtick;
 		extern string command;
 		extern string token;
+		extern string stat_checkmark;
 	}
 
 	void init();
