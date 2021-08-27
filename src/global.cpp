@@ -19,6 +19,8 @@ namespace global {
 		bool stat = false;
 		bool render = false;
 		bool update_all = false;
+		bool find = false;
+		vector<string> search_terms;
 	}
 
 	string tldrPath;
@@ -30,6 +32,7 @@ namespace global {
 		string command = "\033[38;2;200;100;150m";
 		string token = "\033[38;2;40;215;66m";
 		string stat_checkmark = "\033[1;32m";
+		string foundMatch = "\033[38;5;110m";
 	}
 }
 

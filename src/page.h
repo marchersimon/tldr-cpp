@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <regex>
+#include <algorithm>
 
 #include "global.h"
 #include "opts.h"

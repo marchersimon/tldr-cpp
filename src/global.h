@@ -21,6 +21,8 @@ namespace global {
 		extern bool stat;
 		extern bool render;
 		extern bool update_all;
+		extern bool find;
+		extern vector<string> search_terms;
 	}
 
 	extern string tldrPath;
@@ -33,6 +35,7 @@ namespace global {
 		extern string command;
 		extern string token;
 		extern string stat_checkmark;
+		extern string foundMatch;
 	}
 
 	void init();

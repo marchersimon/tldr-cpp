@@ -5,13 +5,42 @@ using namespace global::opts;
 /*
 Parses a comma-separated list of languages like "en,fr,it" and puts them in a list
 */
-void opts::parseLanguages(char* optarg) {
+void opts::parseLanguages(char *optarg) {
 	languages.clear();
 	std::stringstream languagelist(optarg);
 	while(languagelist.good()) {
 		string nextLanguage;
 		std::getline(languagelist, nextLanguage, ',');
 		languages.push_back(nextLanguage);
+	}
+}
+
+/*
+Parses the rest of the arguments and puts them into a list
+*/
+void opts::parseSearchTerm(char *optarg, int argc, char *argv[]) {
+	// in case the search string was provided as `tldr -f search` or `tldr -f "search1 search2 search3"`
+	std::stringstream arglist(optarg);
+	while(arglist.good()) {
+		string nextWord;
+		std::getline(arglist, nextWord, ' ');
+		if(!nextWord.empty()) {
+			search_terms.push_back(nextWord);
+		}
+	}
+	// when running `tldr -f "search1 search2" search3`, search3 will be ignored
+	if(search_terms.size() > 1) {
+		return;
+	}
+	// in case the search string was provided as `tldr -f search1 search2 search3`
+	for(int i = optind; i < argc; i++) {
+		search_terms.push_back(argv[i]);
+	}
+
+	// convert to lowercase
+	for(auto & search_term : search_terms) {
+		std::transform(search_term.begin(), search_term.end(), search_term.begin(),
+    		[](unsigned char c){ return std::tolower(c); });
 	}
 }
 
@@ -30,12 +59,13 @@ void opts::parse(int argc, char* argv[]) {
 		{"stat", required_argument, NULL, 's'},
 		{"render", required_argument, NULL, 'r'},
 		{"all", no_argument, NULL, 'a'},
+		{"find", required_argument, NULL, 'f'},
 		{NULL, 0, NULL, 0},
 	};
 
 	char opt;
 
-	while((opt = getopt_long(argc, argv, "hul:vp:s:r:a", long_options, NULL)) != -1) {
+	while((opt = getopt_long(argc, argv, "hul:vp:s:r:af:", long_options, NULL)) != -1) {
 		switch(opt) {
 			case 'h':
 				help = true;
@@ -65,6 +95,10 @@ void opts::parse(int argc, char* argv[]) {
 				break;
 			case 'a':
 				update_all = true;
+				break;
+			case 'f':
+				find = true;
+				parseSearchTerm(optarg, argc, argv);
 				break;
 		}
 	}
