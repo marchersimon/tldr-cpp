@@ -23,7 +23,17 @@ int Line::size() {
 string Line::str() const {
 	string str;
 	for(const Token & token : line) {
-		str.append(token.orig + " ");
+		if(ispunct(token.orig[0])) {
+			if(!(token.orig[1] & 8)) {
+				str.pop_back();
+			}
+			str.append(1, token.orig[0]);
+			if(token.orig[1] & 4) {
+				str.append(" ");
+			}
+		} else {
+			str.append(token.orig + " ");
+		}
 	}
 	return str;
 }
@@ -43,21 +53,21 @@ void formatPage(TokenizedPage & tpage) {
 	}
 
 	// Remove More information link in case there is one
-	if(tpage.descr.back().at(0).orig == "More" && tpage.descr.back().at(0).orig == "information") {
+	if(tpage.descr.back().at(0).orig == "More" && tpage.descr.back().at(1).orig == "information") {
 		tpage.descr.pop_back();
 	}
 
     // Remove all backtichs
 	for(Line & line : tpage.descr) {
 		for(int i = line.size() - 1; i >= 0; i--) {
-			if(line.at(i).orig == "`") {
+			if(line.at(i).orig[0] == '`') {
 				line.remove(i);
 			}
 		}
 	}
 	for(SearchableExample & example : tpage.examples) {
 		for(int i = example.descr.size() - 1; i >= 0; i--) {
-			if(example.descr.at(i).orig == "`") {
+			if(example.descr.at(i).orig[0] == '`') {
 				example.descr.remove(i);
 			}
 		}
@@ -154,7 +164,7 @@ void printMatches(const vector<Match> & matches) {
 	maxNameLen += 2;
 
 	for(auto & match : matches) {
-		std:: cout << match.score << std::endl;
+		//std:: cout << match.score << std::endl;
 		std::cout << match.name;
 		for(int i = 0; i < maxNameLen - match.nameLen; i++) {
 			std::cout << " ";
@@ -169,6 +179,15 @@ void printMatches(const vector<Match> & matches) {
 	}
 }
 
+void highlightMatches(vector<Match> & matches) {
+	for(auto & match : matches) {
+		for(auto & highlight : match.descrMatchedAt) {
+			match.descr.at(highlight[0]).at(highlight[1]).orig.insert(0, global::color::foundMatch);
+			match.descr.at(highlight[0]).at(highlight[1]).orig.append(global::color::dfault);
+		}
+	}
+}
+
 void find(vector<string> searchTerms) {
 
 	vector<TokenizedPage> tpages = getAllPages();
@@ -177,12 +196,17 @@ void find(vector<string> searchTerms) {
 		// stem all pages
 		for(Line & line : tpage.descr) {
 			for(Token & token : line) {
-				stem(token.srch);
+				if(!token.srch.empty()) {
+					stem(token.srch);
+				}
+				
 			}
 		}	
 		for(SearchableExample & example : tpage.examples) {
 			for(Token & token : example.descr) {
-				stem(token.srch);
+				if(!token.srch.empty()) {
+					stem(token.srch);
+				}
 			}
 		}
 
@@ -210,7 +234,7 @@ void find(vector<string> searchTerms) {
 		If a matched page name has subcommands, only the 3 highest scored are shown
 
 		For each occurence in the first description line the page gets 100 points
-		For each occurence in the first description line the page gets 50 points
+		For each occurence in the second description line the page gets 50 points
 		For each occurence in an example description, the page get's 50 points
 		Only the 3 highest scored examples of a page are shown
 	*/
@@ -218,6 +242,7 @@ void find(vector<string> searchTerms) {
 	vector<Match> matches;
 
 	for(auto & tpage : tpages) {
+
 		Match match;
 		int pos = tpage.name.find(search_term);
 		if(pos != string::npos) {
@@ -240,7 +265,7 @@ void find(vector<string> searchTerms) {
 						match.nameLen = tpage.name.length();
 					}
 					match.descr.clear();
-					for(int k = 0; k < k + 1; k++) {
+					for(int k = 0; k < i + 1; k++) {
 						match.descr.push_back(tpage.descr[k]);
 					}
 					match.descrMatchedAt.push_back({i, j});
@@ -254,14 +279,14 @@ void find(vector<string> searchTerms) {
 	}
 
 	std::sort(matches.begin(), matches.end(), [](const Match & x, const Match & y) {return x.score > y.score;});
+	highlightMatches(matches);
 	printMatches(matches);
 }
 
 void removeStopWords(vector<string> & list) {
 
 	static vector<string> stopWords = { // from https://gist.github.com/sebleier/554280
-		"it", "its", "itself", "they", "them", "their", "theirs", "themselves", "what",
-		"which", "who", "whom", "this", "that", "these", "those", "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had",
+		"it", "its", "itself", "they", "them", "their", "what",	"which", "this", "that", "is", "are", "have", "has",
 		"having", "do", "does", "did", "doing", "a", "an", "the", "and", "but", "if", "or", "because", "as", "until", "while", "of", "at", "by",
 		"for", "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "to", "from", "up",
 		"down", "in", "out", "on", "off", "over", "under", "again", "further", "then", "once", "here", "there", "when", "where", "why", "how",
@@ -278,14 +303,49 @@ void removeStopWords(vector<string> & list) {
 	}
 }
 
+
+/*
+This turns "Example, sentence! (test)" into ["Example", ",", "sentence", "!", "(", "test", ")"]
+Also, it remembers spaces around punctuation. ".8" means, that a space precedes, ".4" means that one follows and ".12" means it's surrounded
+*/
 vector<string> tokenize(string s) {
+	
 	vector<string> tokens;
-	std::stringstream tokenlist(s);
-	while(tokenlist.good()) {
-		string nextToken;
-		std::getline(tokenlist, nextToken, ' ');
-		tokens.push_back(nextToken);
+	string token = "";
+	for(int i = 0; i < s.size(); i++) {
+		if(ispunct(s[i])) {
+			if(!token.empty()) {
+				tokens.push_back(token);
+				token = "";
+			}
+			token = s[i];
+			char punctSpaces = 0;
+			if(i == 0) {
+				if(s[1] == ' ') punctSpaces = 8;
+			} else if (i == (s.length() - 1)) {
+				if(s[i - 1] == ' ') punctSpaces = 4;
+			} else {
+				if(s[i - 1] == ' ') {
+					punctSpaces |= 8;
+				}
+				if(s[i + 1] == ' ') {
+					punctSpaces |= 4;
+				}
+				// 8 | 4 = 12
+			}
+			token.append(1, punctSpaces);
+			tokens.push_back(token);
+			token = "";
+		} else if(s[i] == ' ') {
+			if(!token.empty()) {
+				tokens.push_back(token);
+				token = "";
+			}
+		} else {
+			token += s[i];
+		}
 	}
+
 	return tokens;
 }
 
@@ -293,9 +353,14 @@ vector<string> tokenize(string s) {
 Stemming algorithm
 It can stem the 60 000 most popular english words in 0.5 seconds
 More info: https://tartarus.org/martin/PorterStemmer/def.txt
-There are some issues with "knightly" and "consolingly", but I couldn't figure out why.
 */
 void stem(string & word) {
+	
+	// For short words this doesn't work very well. For example `ls` will be shortened to `l`.
+	if(word.length() < 3) {
+		return; 
+	}
+	
 	int mval;
 	
 	/*

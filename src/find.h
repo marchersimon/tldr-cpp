@@ -9,13 +9,13 @@ class Token {
         string orig; // origial
         string srch; // search
         Token(string origWord);
-        Token();
+        Token(){};
 };
 
 class Line {
     public:
         vector<Token> line;
-        Line();
+        Line(){};
         Line(vector<string> origLine);
         Token& at(int n);
         void remove(int n);
@@ -27,7 +27,6 @@ class Line {
 
 class SearchableExample {
     public:
-        SearchableExample();
         Line descr;
         string command;
 };
@@ -63,4 +62,4 @@ vector<string> tokenize(string s);
 void find(vector<string> search_terms);
 string join(vector<string> vect);
 void printMatches(const vector<Match> & matches);
-void hightlightMatches(vector<Match> & matches);
+void highlightMatches(vector<Match> & matches);
