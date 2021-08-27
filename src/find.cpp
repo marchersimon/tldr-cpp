@@ -1,42 +1,92 @@
 #include "find.h"
 
-void formatPage(Page & page) {
+Token& Line::at(int n) {
+	return line.at(n);
+}
+
+void Line::remove(int n) {
+	line.erase(line.begin() + n);
+}
+
+// With begin() and end() I can use for(Token & t : line), instead of for(Token & t : line.line)
+vector<Token>::iterator Line::begin() {
+	return line.begin();
+}
+vector<Token>::iterator Line::end() {
+	return line.end();
+}
+
+int Line::size() {
+	return line.size();
+}
+
+string Line::str() const {
+	string str;
+	for(const Token & token : line) {
+		str.append(token.orig + " ");
+	}
+	return str;
+}
+
+void formatPage(TokenizedPage & tpage) {
     // Remove "# " in front of page name
-    page.name.erase(0, 2);
-    // Remove "> " in the descrition
-    int pos = page.description.find("> ");
-    while(pos != string::npos) {
-        page.description.erase(pos, 2);
-        pos = page.description.find("> ");
-    }
+    tpage.name.erase(0, 2);
+
+    // Remove "> " in the original descrition
+	for(Line & line : tpage.descr) {
+		line.remove(0); // ">" is first token
+	}
+	
 	// Remove "- " in all example descriptions
-	for(auto & example : page.examples) {
-		example.description.erase(0, 2);
+	for(SearchableExample & example : tpage.examples) {
+		example.descr.remove(0);
 	}
+
 	// Remove More information link in case there is one
-	pos = page.description.find("More information");
-	if(pos != string::npos) {
-		page.description.erase(pos - 1, page.description.length() - pos + 1);
+	if(tpage.descr.back().at(0).orig == "More" && tpage.descr.back().at(0).orig == "information") {
+		tpage.descr.pop_back();
 	}
+
     // Remove all backtichs
-    for(auto & example : page.examples) {
-        example.description.erase(std::remove(example.description.begin(), example.description.end(), '`'), example.description.end());
-    }
-    page.description.erase(std::remove(page.description.begin(), page.description.end(), '`'), page.description.end());
-
-	// Convert everything to lowercase
-	std::transform(page.description.begin(), page.description.end(), page.description.begin(),
-    	[](unsigned char c){ return std::tolower(c); });
-
-	for(auto & example : page.examples) {
-		std::transform(example.description.begin(), example.description.end(), example.description.begin(),
-    		[](unsigned char c){ return std::tolower(c); });
+	for(Line & line : tpage.descr) {
+		for(int i = line.size() - 1; i >= 0; i--) {
+			if(line.at(i).orig == "`") {
+				line.remove(i);
+			}
+		}
 	}
-	// Remove all punctuation
-	page.description.erase(std::remove_if(page.description.begin (), page.description.end (), ispunct), page.description.end ());
-	for(auto & example : page.examples) {
-        example.description.erase(std::remove_if(example.description.begin(), example.description.end(), ispunct), example.description.end());
-    }
+	for(SearchableExample & example : tpage.examples) {
+		for(int i = example.descr.size() - 1; i >= 0; i--) {
+			if(example.descr.at(i).orig == "`") {
+				example.descr.remove(i);
+			}
+		}
+	}
+
+	// copy the original descriptions to the searchbale ones
+	// Then remove all punctuations and turn everything lowercase
+	for(Line & line : tpage.descr) {
+		for(Token & token : line) {
+			if(ispunct(token.orig[0])) { // if it's a punctuation it only has one character
+				token.srch = "";
+			} else {
+				for(const char & c : token.orig) {
+					token.srch += std::tolower(c);
+				}
+			}
+		}
+	}
+	for(SearchableExample & example : tpage.examples) {
+		for(Token & token : example.descr) {
+			if(ispunct(token.orig[0])) { // if it's a punctuation it only has one character
+				token.srch = "";
+			} else {
+				for(const char & c : token.orig) {
+					token.srch += std::tolower(c);
+				}
+			}
+		}
+	}
 }
 
 vector<TokenizedPage> getAllPages() {
@@ -53,18 +103,70 @@ vector<TokenizedPage> getAllPages() {
 		}
 		fileStream.close();
 		Page page(file);
-		formatPage(page);
 		TokenizedPage tpage;
 		tpage.name = page.name;
-		tpage.description = tokenize(page.description);
-		for(const auto & example : page.examples) {
-			tpage.exampleDescriptions.push_back(tokenize(example.description));
+		std::stringstream descrStream(page.description);
+		while(descrStream.good()) {
+			string nextLine;
+			std::getline(descrStream, nextLine);
+			tpage.descr.push_back(tokenize(nextLine));
 		}
+		tpage.descr.pop_back(); // since page.description ends with \n, getline will create an empty element at the end
+		for(const auto & example : page.examples) {
+			SearchableExample searchExample;
+			searchExample.descr = tokenize(example.description);
+			searchExample.command = example.command;
+			tpage.examples.push_back(searchExample);
+		}
+		formatPage(tpage);
 		pages.push_back(tpage);
-
 	}
 
 	return pages;
+}
+
+string join(vector<string> vect) {
+	string s;
+	for(string str : vect) {
+		s.append(str + " ");
+	}
+	s.pop_back(); // remove last space avain
+	return s;
+}
+
+Token::Token(string origWord) {
+    orig = origWord;
+}
+
+Line::Line(vector<string> origLine) {
+	for(const string & word : origLine) {
+		line.push_back(word);
+	}
+}
+
+void printMatches(const vector<Match> & matches) {
+	int maxNameLen = 0;
+	for(auto & match : matches) {
+		if(match.nameLen > maxNameLen) {
+			maxNameLen = match.nameLen;
+		}
+	}
+	maxNameLen += 2;
+
+	for(auto & match : matches) {
+		std:: cout << match.score << std::endl;
+		std::cout << match.name;
+		for(int i = 0; i < maxNameLen - match.nameLen; i++) {
+			std::cout << " ";
+		}
+		std::cout << match.descr[0].str() << std::endl;
+		if(match.descr.size() > 1) {
+			for(int i = 0; i < maxNameLen; i++) {
+				std::cout << " ";
+			}
+			std::cout << match.descr[1].str() << std::endl;
+		}
+	}
 }
 
 void find(vector<string> searchTerms) {
@@ -73,56 +175,92 @@ void find(vector<string> searchTerms) {
 
 	for(auto & tpage : tpages) {
 		// stem all pages
-		for(auto & word : tpage.description) {
-			stem(word);
-		}
-		for(auto & exampleDescr : tpage.exampleDescriptions) {
-			for(auto & word : exampleDescr) {
-				stem(word);
+		for(Line & line : tpage.descr) {
+			for(Token & token : line) {
+				stem(token.srch);
+			}
+		}	
+		for(SearchableExample & example : tpage.examples) {
+			for(Token & token : example.descr) {
+				stem(token.srch);
 			}
 		}
-		// remove all stop words
-		removeStopWords(tpage.description);
-		for(auto & exampleDescr : tpage.exampleDescriptions) {
-			removeStopWords(exampleDescr);
+
+		/* //remove all stop words
+		for(auto & descrLine : tpage.descr) {
+			removeStopWords(descrLine);
 		}
+		for(auto & example : tpage.examples) {
+			removeStopWords(example.descr);
+		}
+		*/
 	}
 
 	// stem all search terms
-	for(auto & searchTerm : searchTerms) {
+	for(string & searchTerm : searchTerms) {
 		stem(searchTerm);
 	}
 
 	string search_term = searchTerms[0];
 
-	for(int i = 0; auto & tpage : tpages) { // needs C++20
+	/*
+	Match scoring system:
+		If the page name matches exactly, the page get's 1000 points
+		If the page name contains the search term it get's 500 points
+		If a matched page name has subcommands, only the 3 highest scored are shown
+
+		For each occurence in the first description line the page gets 100 points
+		For each occurence in the first description line the page gets 50 points
+		For each occurence in an example description, the page get's 50 points
+		Only the 3 highest scored examples of a page are shown
+	*/
+
+	vector<Match> matches;
+
+	for(auto & tpage : tpages) {
+		Match match;
 		int pos = tpage.name.find(search_term);
 		if(pos != string::npos) {
-			tpage.name.insert(pos + search_term.length(), global::color::dfault);
-			tpage.name.insert(pos, global::color::foundMatch);
-			std::cout << tpage.name;
-			int endOfFirstLine = tpage.getDescription().find('\n');
-			std::cout << " - " << tpage.getDescription().substr(0, endOfFirstLine) << std::endl;
-			tpages.erase(tpages.begin() + i); // TODO: check if this works
+			match.name = tpage.name;
+			match.nameLen = tpage.name.length();
+			match.name.insert(pos + search_term.length(), global::color::dfault);
+			match.name.insert(pos, global::color::foundMatch);
+			match.descr.push_back(tpage.descr[0]);
+			if(tpage.name == search_term) {
+				match.score += 1000;
+			} else {
+				match.score += 500;
+			}
 		}
-		i++;
+		for(int i = 0; i < tpage.descr.size(); i++) {
+			for(int j = 0; j < tpage.descr[i].size(); j++) {
+				if(tpage.descr[i].at(j).srch == search_term) {
+					if(match.name.empty()) {
+						match.name = tpage.name;
+						match.nameLen = tpage.name.length();
+					}
+					match.descr.clear();
+					for(int k = 0; k < k + 1; k++) {
+						match.descr.push_back(tpage.descr[k]);
+					}
+					match.descrMatchedAt.push_back({i, j});
+					match.score += 50 * (2 - i);
+				}
+			}
+		}
+		if(!match.name.empty()) {
+			matches.push_back(match);
+		}
 	}
-}
 
-string TokenizedPage::getDescription() {
-	string descr;
-	for(const auto & word : description) {
-		descr.append(word + " ");
-	}
-	descr.pop_back(); // remove last space again
-	return descr;
+	std::sort(matches.begin(), matches.end(), [](const Match & x, const Match & y) {return x.score > y.score;});
+	printMatches(matches);
 }
 
 void removeStopWords(vector<string> & list) {
 
 	static vector<string> stopWords = { // from https://gist.github.com/sebleier/554280
-		"i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours", "yourself", "yourselves", "he", "him",
-		"his", "himself", "she", "her", "hers", "herself", "it", "its", "itself", "they", "them", "their", "theirs", "themselves", "what",
+		"it", "its", "itself", "they", "them", "their", "theirs", "themselves", "what",
 		"which", "who", "whom", "this", "that", "these", "those", "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had",
 		"having", "do", "does", "did", "doing", "a", "an", "the", "and", "but", "if", "or", "because", "as", "until", "while", "of", "at", "by",
 		"for", "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "to", "from", "up",
@@ -157,7 +295,6 @@ It can stem the 60 000 most popular english words in 0.5 seconds
 More info: https://tartarus.org/martin/PorterStemmer/def.txt
 There are some issues with "knightly" and "consolingly", but I couldn't figure out why.
 */
-
 void stem(string & word) {
 	int mval;
 	
