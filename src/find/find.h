@@ -1,8 +1,12 @@
 #pragma once
 
-#include "global.h"
-#include "cache.h"
-#include "page.h"
+#include <set>
+#include <numeric>
+#include <math.h>
+#include "../global.h"
+#include "../cache.h"
+#include "../page.h"
+#include "stem.h"
 
 class Token {
     public:
@@ -33,14 +37,19 @@ class SearchableExample {
 
 class TokenizedPage {
     public:
-        string name;
+        Line name;
+        string platform;
         vector<Line> descr;
         vector<SearchableExample> examples;
         bool hasMatch = false;
+        vector<double> tfidf;
+        double termFrequency;
+        double score;
 };
 
 class Match {
     public:
+        bool matched = false;
         int score = 0;
         string name;
         int nameLen = 0;
@@ -50,15 +59,9 @@ class Match {
 
 void formatPage(TokenizedPage & page);
 vector<TokenizedPage> getAllPages();
-void stem(string & word);
-int getMval(string word);
-bool containsVowel(string word);
-bool isVowel(char c);
-bool endsWithDoubleConsonant(string word);
-bool endsWithCVC(string word);
-void replace(string & word, int minmval, int lbefore, string after);
-void removeStopWords(vector<string> & list);
+void removeStopWords(Line & line);
 vector<string> tokenize(string s);
+vector<string> tokenizeBySpace(string s);
 void find(vector<string> search_terms);
 string join(vector<string> vect);
 void printMatches(const vector<Match> & matches);

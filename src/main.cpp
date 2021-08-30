@@ -7,7 +7,7 @@
 #include "global.h"
 #include "update.h"
 #include "page.h"
-#include "find.h"
+#include "find/find.h"
 
 #define trycatch(...)	try {__VA_ARGS__;} \
 						catch (const std::runtime_error& e) { \
