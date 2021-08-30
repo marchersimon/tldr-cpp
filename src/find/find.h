@@ -12,6 +12,7 @@ class Token {
     public:
         string orig; // origial
         string srch; // search
+        void makeSearchable();
         Token(string origWord);
         Token(){};
 };
@@ -29,40 +30,31 @@ class Line {
         string str() const;
 };
 
-class SearchableExample {
+class TExample {
     public:
         Line descr;
         string command;
 };
 
-class TokenizedPage {
+class TPage {
     public:
         Line name;
         string platform;
+        int namelen;
         vector<Line> descr;
-        vector<SearchableExample> examples;
+        vector<TExample> examples;
         bool hasMatch = false;
         vector<double> tfidf;
         double termFrequency;
         double score;
 };
 
-class Match {
-    public:
-        bool matched = false;
-        int score = 0;
-        string name;
-        int nameLen = 0;
-        vector<Line> descr;
-        vector<vector<int>> descrMatchedAt; // {line, word}
-};
-
-void formatPage(TokenizedPage & page);
-vector<TokenizedPage> getAllPages();
-void removeStopWords(Line & line);
+void formatPage(Page & page);
+vector<TPage> getAllPages();
+bool isStopWord(string word);
 vector<string> tokenize(string s);
 vector<string> tokenizeBySpace(string s);
 void find(vector<string> search_terms);
 string join(vector<string> vect);
-void printMatches(const vector<Match> & matches);
-void highlightMatches(vector<Match> & matches);
+void printMatches(const vector<TPage> & matches);
+void highlightMatches(vector<TPage> & matches, vector<string> searchTerms);
