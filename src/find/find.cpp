@@ -87,36 +87,51 @@ vector<TPage> getAllPages() {
 		}
 		fileStream.close();
 		Page page(file);
+		// remove unneccessary parts
 		formatPage(page);
 		TPage tpage;
 		tpage.namelen = page.name.length();
 		tpage.name = tokenizeBySpace(page.name); // git local-commits -> {"git", "local-commits"}
-		tpage.platform = page.platform;
+		tpage.platform = page.platform; 
+		// get all description lines
 		std::stringstream descrStream(page.description);
-		while(descrStream.good()) {
+		if(searchDescr) {
+			while(descrStream.good()) {
+				string nextLine;
+				std::getline(descrStream, nextLine);
+				tpage.descr.push_back(tokenize(nextLine));
+			}
+			tpage.descr.pop_back(); // since page.description ends with \n, getline will create an empty element at the end
+		} else {
+			// only get the first line if descriptions aren't seached for
 			string nextLine;
 			std::getline(descrStream, nextLine);
 			tpage.descr.push_back(tokenize(nextLine));
 		}
-		tpage.descr.pop_back(); // since page.description ends with \n, getline will create an empty element at the end
-
-		// ignoring example descriptions for now, because they kind of mess stuff up
-		/*for(const auto & example : page.examples) {
-			TExample texample;
-			texample.descr = tokenize(example.description);
-			texample.command = example.command;
-			tpage.examples.push_back(texample);
-		}*/
-		for(Line & line : tpage.descr) {
-			for(Token & token : line) {
-				token.makeSearchable();
+		// get all examples
+		if(searchExamples) {
+			for(const auto & example : page.examples) {
+				TExample texample;
+				texample.descr = tokenize(example.description);
+				texample.command = example.command;
+				tpage.examples.push_back(texample);
 			}
 		}
-		/*for(TExample & example : tpage.examples) {
-			for(Token & token : example.descr) {
-				token.makeSearchable();
+		// create the searchable variant of all descriptions
+		if(searchDescr) {
+			for(Line & line : tpage.descr) {
+				for(Token & token : line) {
+					token.makeSearchable();
+				}
 			}
-		}*/
+		}
+		if(searchExamples) {
+			for(TExample & example : tpage.examples) {
+				for(Token & token : example.descr) {
+					token.makeSearchable();
+				}
+			}
+		}
 		pages.push_back(tpage);
 	}
 
@@ -127,42 +142,55 @@ void formatPage(Page & page) {
     // Remove "# " in front of page name
 	page.name.erase(0, 2);
 
-    // Remove "> " in the original descrition
-	int pos = page.description.find("> ");
-	while (pos != string::npos) {
-		page.description.erase(pos, 2);
+	int pos;
+	if(searchDescr) {
+		// Remove "> " in the original descrition
 		pos = page.description.find("> ");
+		while (pos != string::npos) {
+			page.description.erase(pos, 2);
+			pos = page.description.find("> ");
+		}
+
+		// Remove More information link in case there is one
+		pos = page.description.find("More information: <");
+		if(pos != string::npos) {
+			page.description.resize(pos);
+		}
+
+		// Remove "See also" notes
+		pos = page.description.find("See also ");
+		if(pos != string::npos) {
+			int EOLpos = page.description.find(pos, '\n');
+			page.description.erase(pos, EOLpos - pos);
+		}
+	} else {
+		// else only remove the > in the first line
+		page.description.erase(0, 2);
 	}
 	
-	// Remove "- " in all example descriptions
-	for(Example & example : page.examples) {
-		example.description.erase(0, 2);
-	}
-
-	// Remove More information link in case there is one
-	pos = page.description.find("More information: <");
-	if(pos != string::npos) {
-		page.description.resize(pos);
-	}
-
-	// Remove "See also" notes
-	pos = page.description.find("See also ");
-	if(pos != string::npos) {
-		int EOLpos = page.description.find(pos, '\n');
-		page.description.erase(pos, EOLpos - pos);
-	}
+	/*
+	if(searchExamples) {
+		// Remove "- " in all example descriptions
+		for(Example & example : page.examples) {
+			example.description.erase(0, 2);
+		}
+	}*/
 
     // Remove all backtichs
-	pos = page.description.find('`');
-	while(pos != string::npos) {
-		page.description.erase(pos, 1);
-		pos = page.description.find(pos, '`');
-	}
-	for(Example & example : page.examples) {
-		pos = example.description.find('`');
+	if(searchDescr) {
+		pos = page.description.find('`');
 		while(pos != string::npos) {
-			example.description.erase(pos, 1);
-			pos = example.description.find(pos, '`');
+			page.description.erase(pos, 1);
+			pos = page.description.find(pos, '`');
+		}
+	}
+	if(searchExamples) {
+		for(Example & example : page.examples) {
+			pos = example.description.find('`');
+			while(pos != string::npos) {
+				example.description.erase(pos, 1);
+				pos = example.description.find(pos, '`');
+			}
 		}
 	}
 }
@@ -170,6 +198,7 @@ void formatPage(Page & page) {
 void printMatches(vector<TPage> & tpages) {
 
 	int maxNamelen = 0;
+	int statlen = 0;
 	for(TPage & tpage : tpages) {
 		if(tpage.namelen > maxNamelen) {
 			maxNamelen = tpage.namelen;
@@ -177,69 +206,131 @@ void printMatches(vector<TPage> & tpages) {
 	}
 	maxNamelen += 2;
 
+	if(global::opts::verbose) {
+		statlen = 6;
+	}
+
 	for(const auto & tpage : tpages) {
-		std::cout.precision(3);
-		std::cout.fill(' ');
-		std::cout << std::left << tpage.score << " ";
+		if(global::opts::verbose) {
+			std::cout.precision(3);
+			std::cout.fill('0');
+			std::cout << std::left << std::setw(5) << tpage.score << " ";
+		}
 		std::cout << tpage.name.str();
 		std::cout << string(maxNamelen - tpage.namelen, ' ') << tpage.descr[0].str() << std::endl;
-		for(int i = 1; i < tpage.descr.size(); i++) {
-			std::cout << string(maxNamelen + 6, ' ') << tpage.descr[i].str() << std::endl;
+		if(searchDescr) {
+			for(int i = 1; i < tpage.descr.size(); i++) {
+				std::cout << string(maxNamelen + statlen, ' ') << tpage.descr[i].str() << std::endl;
+			}
+		}
+		if(searchExamples) {
+			for(const TExample & example : tpage.examples) {
+				std::cout << string(maxNamelen + statlen + 2, ' ') << example.descr.str() << std::endl;
+				std::cout << string(maxNamelen + statlen + 4, ' ') << example.command << std::endl;
+			}
 		}
 	}
 }
 
 void highlightMatches(vector<TPage> & tpages, vector<string> searchTerms) {
 	for(auto & tpage : tpages) {
-		for(Token & token : tpage.name) {
-			for(string & searchTerm : searchTerms) {
-				int pos = token.orig.find(searchTerm);
-				if(pos != string::npos) {
-					token.orig.insert(pos + searchTerm.length(), global::color::dfault);
-					token.orig.insert(pos, global::color::foundMatch);
+		if(searchName) {
+			for(Token & token : tpage.name) {
+				for(string & searchTerm : searchTerms) {
+					int pos = token.orig.find(searchTerm);
+					if(pos != string::npos) {
+						token.orig.insert(pos + searchTerm.length(), global::color::dfault);
+						token.orig.insert(pos, global::color::foundMatch);
+					}
 				}
 			}
 		}
-		for(Line & line : tpage.descr) {
-			for(Token & token : line) {
-				for(string & searchTerm : searchTerms) {
-					if(token.srch == searchTerm) {
-						token.orig.insert(0, global::color::foundMatch);
-						token.orig.append(global::color::dfault);
+		if(searchDescr) {
+			for(Line & line : tpage.descr) {
+				bool hasMatch = false;
+				for(Token & token : line) {
+					for(string & searchTerm : searchTerms) {
+						if(token.srch == searchTerm) {
+							token.orig.insert(0, global::color::foundMatch);
+							token.orig.append(global::color::dfault);
+							hasMatch = true;
+						}
 					}
 				}
+				tpage.matchedDescriptionLines.push_back(hasMatch);
+			}
+		}
+		if(searchExamples) {
+			for(TExample & example : tpage.examples) {
+				bool hasMatch = false;
+				for(Token & token : example.descr) {
+					for(string & searchTerm : searchTerms) {
+						if(token.srch == searchTerm) {
+							token.orig.insert(0, global::color::foundMatch);
+							token.orig.append(global::color::dfault);
+							hasMatch = true;
+						}
+					}
+				}
+				tpage.matchedExamples.push_back(hasMatch);
 			}
 		}
 	}
 }
 
-vector<double> getInverseDocumentFrequency(vector<TPage> & tpages, std::vector<string> & SVMset) {
+void removeNonMatchedLines(vector<TPage> & tpages) {
+
+	for(TPage & tpage : tpages) {
+		if(searchDescr) {
+			for(int i = tpage.descr.size() - 1; i > 0; i--) {
+				if(!tpage.matchedDescriptionLines[i]) {
+					tpage.descr.erase(tpage.descr.begin() + i);
+				}
+			}
+		}
+		if(searchExamples) {
+			for(int i = tpage.examples.size() - 1; i >= 0; i--) {
+				if(!tpage.matchedExamples[i]) {
+					tpage.examples.erase(tpage.examples.begin() + i);
+				}
+			}
+		}
+	}	
+}
+
+vector<double> getIDF(vector<TPage> & tpages, std::vector<string> & terms) {
 	vector<double> IDF;
 	
-	for(const string & word : SVMset) {
+	for(const string & word : terms) {
 		int docsContainingWord = 0;
 		for(int i = 0; i < tpages.size(); i++) {
-			for(Line & descr : tpages[i].descr) {
-				for(Token & token : descr) {
-					if(word == token.srch) {
-						docsContainingWord++;
-						goto nextPage;
+			if(searchDescr) {
+				for(Line & descr : tpages[i].descr) {
+					for(Token & token : descr) {
+						if(word == token.srch) {
+							docsContainingWord++;
+							goto nextPage;
+						}
 					}
 				}
 			}
-			for(auto & example : tpages[i].examples) {
-				for(Token & token : example.descr) {
-					if(word == token.srch) {
-						docsContainingWord++;
-						goto nextPage;
+			if(searchExamples) {
+				for(auto & example : tpages[i].examples) {
+					for(Token & token : example.descr) {
+						if(word == token.srch) {
+							docsContainingWord++;
+							goto nextPage;
+						}
 					}
 				}
 			}
-			for(Token & token : tpages[i].name) {
-				int pos = token.orig.find(word);
-				if(pos != string::npos) {
-					docsContainingWord++;
-					goto nextPage;
+			if(searchName) {
+				for(Token & token : tpages[i].name) {
+					int pos = token.orig.find(word);
+					if(pos != string::npos) {
+						docsContainingWord++;
+						goto nextPage;
+					}
 				}
 			}
 			nextPage:;
@@ -260,36 +351,43 @@ void calculateTFIDF(auto & tpages, std::vector<string> SVMset, vector<double> id
 	for(TPage & tpage : tpages) {
 		for(int i = 0; const string & word : SVMset) {
 			int numberOfTerms = 0;
-			int termsInExamples = 0;
-			int termCount = 0;
-			for(Line & line : tpage.descr) {
-				for(Token & token : line) {
-					if(isalpha(token.orig[0])) {
-						numberOfTerms++;
-						if(token.srch == word) {
-							termCount++;
+			int matchesInExamples = 0;
+			int matchesInDescription = 0;
+			if(searchDescr) {
+				for(Line & line : tpage.descr) {
+					for(Token & token : line) {
+						if(isalpha(token.orig[0])) {
+							numberOfTerms++;
+							if(token.srch == word) {
+								matchesInDescription++;
+							}
 						}
 					}
 				}
 			}
-			for(auto & example : tpage.examples) {
-				for(auto & token : example.descr) {
-					if(isalpha(token.orig[0])) {
-						numberOfTerms++;
-						if(token.srch == word) {
-							termsInExamples++;
+			if(searchExamples) {
+				for(auto & example : tpage.examples) {
+					for(auto & token : example.descr) {
+						if(isalpha(token.orig[0])) {
+							numberOfTerms++;
+							if(token.srch == word) {
+								matchesInExamples++;
+							}
 						}
 					}
 				}
 			}
-			for(Token & token : tpage.name) {
-				int pos = token.orig.find(word);
-				if(pos != string::npos) {
-					termCount++;
+			if(searchName) {
+				for(Token & token : tpage.name) {
+					numberOfTerms++;
+					int pos = token.orig.find(word);
+					if(pos != string::npos) {
+						matchesInDescription++;
+					}
 				}
 			}
 			// If a term appears in the description it's 3 times as relevant
-			double termFrequency = ((double)termCount * 0.75 + (double)termsInExamples * 0.25) / numberOfTerms;
+			double termFrequency = ((double)matchesInDescription * 0.75 + (double)matchesInExamples * 0.25) / numberOfTerms;
 			tpage.termFrequency = termFrequency;
 			tpage.tfidf.push_back(termFrequency * idf[i]);
 			i++;
@@ -314,33 +412,39 @@ void find(vector<string> searchTerms) {
 		stem(searchTerm);
 	}
 
+	// check if a page has at least one match, else it will be removed directly
 	for(auto & tpage : tpages) {
-		
-		for(Token & token : tpage.name) {
-			for(string & searchTerm : searchTerms) {
-				int pos = token.orig.find(searchTerm);
-				if(pos != string::npos) {
-					tpage.hasMatch = true;
-					goto nextPage;
-				}
-			}
-		}
-		for(Line & line : tpage.descr) {
-			for(Token & token : line) {
+		if(searchName) {
+			for(Token & token : tpage.name) {
 				for(string & searchTerm : searchTerms) {
-					if(searchTerm == token.srch) {
+					int pos = token.orig.find(searchTerm);
+					if(pos != string::npos) {
 						tpage.hasMatch = true;
 						goto nextPage;
 					}
 				}
 			}
 		}
-		for(auto & example : tpage.examples) {
-			for(auto & token : example.descr) {
-				for(string & searchTerm : searchTerms) {
-					if(searchTerm == token.srch) {
-						tpage.hasMatch = true;
-						goto nextPage;
+		if(searchDescr) {
+			for(Line & line : tpage.descr) {
+				for(Token & token : line) {
+					for(string & searchTerm : searchTerms) {
+						if(searchTerm == token.srch) {
+							tpage.hasMatch = true;
+							goto nextPage;
+						}
+					}
+				}
+			}
+		}
+		if(searchExamples) {
+			for(auto & example : tpage.examples) {
+				for(auto & token : example.descr) {
+					for(string & searchTerm : searchTerms) {
+						if(searchTerm == token.srch) {
+							tpage.hasMatch = true;
+							goto nextPage;
+						}
 					}
 				}
 			}
@@ -348,7 +452,7 @@ void find(vector<string> searchTerms) {
 		nextPage:;
 	}
 
-
+	// remove pages without match
 	for(int i = tpages.size() - 1; i >= 0; i--) {
 		if(!tpages[i].hasMatch) {
 			tpages.erase(tpages.begin() + i);
@@ -356,7 +460,7 @@ void find(vector<string> searchTerms) {
 	}
 
 	if(tpages.empty()) {
-		if(!global::opts::platform.empty()) {
+		if(!global::opts::platform.empty() || global::opts::findOverrideDefaults) {
 			std::cout << "Nothing found. Try being a bit less specific" << std::endl;
 			return;
 		} else {
@@ -365,64 +469,81 @@ void find(vector<string> searchTerms) {
 		}
 	}
 
-	vector<double> IDF = getInverseDocumentFrequency(tpages, searchTerms);
-
-	for(int i = 0; i < searchTerms.size(); i++) {
-		std::cout << searchTerms[i] << ": " << IDF[i] << std::endl;
+	vector<double> IDF;
+	// If I'm only searching for the search term, the IDF value won't correctly represent the importance.
+	// In the same way, if I'm only searching for 1 term, the vector space will only have one axis and therefore the angle between them will be the same
+	if(!searchNameOnly && searchTerms.size() > 1) {
+		IDF = getIDF(tpages, searchTerms);
+	} else {
+		// initialize the score with 1
+		for(int i = 0; i < searchTerms.size(); i++) {
+			IDF.push_back(1);
+		}
 	}
 	
 
-	calculateTFIDF(tpages, searchTerms, IDF);
-/*
-	for(auto & tpage : tpages) {
-		vector<double> diff;
-		for(int i = 0; i < tpage.tfidf.size(); i++) { 
-			diff.push_back(IDF[i] - tpage.tfidf[i]);
+	// print the weight/importance of each search term
+	if(global::opts::verbose) {
+		for(int i = 0; i < searchTerms.size(); i++) {
+			std::cout << searchTerms[i] << ": " << IDF[i] << std::endl;
 		}
-		double a = 0;
-		for(double val : diff) {
-			a += val * val;
-		}
-		double absIDF = std::sqrt(a);
-		tpage.score = 1 / absIDF;
-	}*/
-	for(auto & tpage : tpages) {
-		double dot = getDotProduct(tpage.tfidf, IDF);
-		double a = 0;
-		for(double val : tpage.tfidf) {
-			a += val * val;
-		}
-		double absPage = std::sqrt(a);
-		a = 0;
-		for(double val : IDF) {
-			a += val * val;
-		}
-		double absIDF = std::sqrt(a);
-		tpage.score = dot / (absIDF * absPage);
-
+		std::cout << std::endl;
 	}
 
-	for(auto & tpage : tpages) {
-		for(const Token & token : tpage.name) {
-			// if the token isn't a word
-			if(!isalpha(token.orig[0])) {
-				continue;
+	calculateTFIDF(tpages, searchTerms, IDF);
+
+	// calculate the cosine similarity (score) of each page
+	// Or in case of only one search term, calculate the distance between the vectors
+	if(!searchNameOnly && searchTerms.size() > 1) {
+		for(auto & tpage : tpages) {
+			double dotProduct = getDotProduct(tpage.tfidf, IDF);
+			double absTFIDF = 0;
+			for(double tmp : tpage.tfidf) {
+				absTFIDF += tmp * tmp;
 			}
-			for(string & searchTerm : searchTerms) {
-				if(searchTerm == token.orig) {
-					tpage.score *= 1.25;
-				// if one of it starts with the search term
-				} else if(token.orig.starts_with(searchTerm)) {
-					tpage.score *= 1.20;
-				} else {
-					int pos = token.orig.find(searchTerm);
-					// if one of it contains the search term
-					if(pos != string::npos) {
-						tpage.score *= 1.15;
-					} 
-					// else reduce the score a bit
-					else {
-						tpage.score *= 0.90;
+			absTFIDF = std::sqrt(absTFIDF);
+			double absIDF = 0;
+			for(double tmp : IDF) {
+				absIDF += tmp * tmp;
+			}
+			absIDF = std::sqrt(absIDF);
+			tpage.score = dotProduct / (absIDF * absTFIDF);
+		}
+	} else if (!searchNameOnly) {
+		for(TPage & tpage : tpages) {
+			tpage.score = IDF[0] - tpage.tfidf[0];
+		}
+	} else {
+		for(TPage & tpage : tpages) {
+			tpage.score = 1;
+		}
+	}
+
+	// boost each page which has matches in the name
+	if(searchName) {
+		for(auto & tpage : tpages) {
+			for(const Token & token : tpage.name) {
+				// if the token isn't a word
+				if(!isalpha(token.orig[0])) {
+					continue;
+				}
+				for(string & searchTerm : searchTerms) {
+					// if the the search term matches exactly one word of the page name
+					if(searchTerm == token.orig) {
+						tpage.score *= 1.25;
+					// if one of it starts with the search term
+					} else if(token.orig.starts_with(searchTerm)) {
+						tpage.score *= 1.20;
+					} else {
+						// if one of it contains the search term
+						int pos = token.orig.find(searchTerm);
+						if(pos != string::npos) {
+							tpage.score *= 1.15;
+						} 
+						// if not, reduce the score a bit
+						else {
+							tpage.score *= 0.90;
+						}
 					}
 				}
 			}
@@ -440,18 +561,33 @@ void find(vector<string> searchTerms) {
 		tpages.resize(12); 
 	}
 
+	// remove description lines and examples without a match
+	removeNonMatchedLines(tpages);
+
+	// format examples
+	for(TPage & tpage : tpages) {
+		for(TExample & example : tpage.examples) {
+			example.command.pop_back();
+			example.command.erase(0, 1);
+			Page::formatTokenSyntax(example.command);
+			example.command.insert(0, global::color::command);
+			example.command.append(global::color::dfault);
+		}
+	}
+
 	printMatches(tpages);
 }
 
+// returns true if it's a stop word and false if not
 bool isStopWord(const string word) {
 
-	static vector<string> stopWords = { // from https://gist.github.com/sebleier/554280
-		"it", "its", "itself",	"which", "this", "that", "is", "are", "have", "has",
-		"having", "do", "does", "did", "doing", "a", "an", "the", "and", "but", "if", "or", "because", "as", "until", "while", "of", "at", "by",
-		"for", "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "to", "from", "up",
-		"down", "in", "out", "on", "off", "over", "under", "again", "further", "then", "once", "here", "there", "when", "where", "why", "how",
-		"all", "any", "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than",
-		"too", "very", "s", "t", "can", "will", "just", "don", "should", "now"
+	// some of them could be removed, since they don't really appear in tldr pages
+	static vector<string> stopWords = {
+		"it", "its", "itself",	"which", "this", "that", "is", "are", "have", "has", "having", "does", "a", "an", "the", "and", "but", 
+		"if", "or", "because", "as", "until", "while", "of", "at", "by", "for", "with", "about", "against", "between", "into", "through", 
+		"during", "before", "after", "to", "from", "up", "down", "in", "out", "on", "off", "over", "under", "again", "further", "then", 
+		"once", "there", "when", "where", "why", "how", "all", "any", "both", "each", "few", "more", "most", "other", "such", "no", "nor", 
+		"not", "only", "own", "same", "so", "than", "too", "s", "t", "can", "will", "just", "don", "should", "now"
 	};
 
 	for(const auto & stopWord : stopWords) {
@@ -462,7 +598,10 @@ bool isStopWord(const string word) {
 	return false;
 }
 
-
+/*
+This tokenizes each line, so that the words can seperately be searched for while the original structure stays intact
+"This is. (an example)" -> "This", " ", "is", ". (", "an", " ", "example", " "
+*/
 vector<string> tokenize(string s) {
 	
 	vector<string> tokens;
@@ -493,7 +632,12 @@ vector<string> tokenize(string s) {
 	return tokens;
 }
 
-vector<string> tokenizeBySpace (string s) { // used for page names
+/*
+Like tokenize, but only uses space as a delimiter, so that
+"apt-get", doesn't become "apt", " - ", "get".
+Used for page names.
+*/
+vector<string> tokenizeBySpace (string s) {
 	vector<string> tokens;
 	string token;
 	for(const char & c : s) {

@@ -21,6 +21,10 @@ namespace global {
 		bool update_all = false;
 		bool find = false;
 		vector<string> search_terms;
+		bool findOverrideDefaults = false;
+		bool name = false; 
+		bool description = false;
+		bool examples = false;
 	}
 
 	string tldrPath;

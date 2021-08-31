@@ -23,6 +23,10 @@ namespace global {
 		extern bool update_all;
 		extern bool find;
 		extern vector<string> search_terms;
+		extern bool findOverrideDefaults;
+		extern bool name;
+		extern bool description;
+		extern bool examples;
 	}
 
 	extern string tldrPath;

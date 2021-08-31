@@ -60,12 +60,15 @@ void opts::parse(int argc, char* argv[]) {
 		{"render", required_argument, NULL, 'r'},
 		{"all", no_argument, NULL, 'a'},
 		{"find", required_argument, NULL, 'f'},
+		{"name", no_argument, NULL, 'n'},
+		{"description", no_argument, NULL, 'd'},
+		{"examples", no_argument, NULL, 'e'},
 		{NULL, 0, NULL, 0},
 	};
 
 	char opt;
 
-	while((opt = getopt_long(argc, argv, "hul:vp:s:r:af:", long_options, NULL)) != -1) {
+	while((opt = getopt_long(argc, argv, "hul:vp:s:r:af:nde", long_options, NULL)) != -1) {
 		switch(opt) {
 			case 'h':
 				help = true;
@@ -99,6 +102,18 @@ void opts::parse(int argc, char* argv[]) {
 			case 'f':
 				find = true;
 				parseSearchTerm(optarg, argc, argv);
+				break;
+			case 'n':
+				name = true;
+				findOverrideDefaults = true;
+				break;
+			case 'd':
+				description = true;
+				findOverrideDefaults = true;
+				break;
+			case 'e':
+				examples = true;
+				findOverrideDefaults = true;
 				break;
 		}
 	}

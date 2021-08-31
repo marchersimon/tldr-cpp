@@ -79,7 +79,7 @@ void Page::format() {
         formatBackticks(&example.description);
         example.command.replace(0, 1, global::color::command);
         example.command.replace(example.command.length() - 1, 1, global::color::dfault);
-        formatTokenSyntax(&example.command);
+        formatTokenSyntax(example.command);
     }
 }
 
@@ -93,25 +93,25 @@ void Page::formatBackticks(string* str) {
     }
 }
 
-void Page::formatTokenSyntax(string* str) {
+void Page::formatTokenSyntax(string & str) {
     int tokenCount = 0; // needed to detect nested "{{ }}"
     bool hasNestedTokens = false;
     std::regex reg("(\\{{2}|\\}{2}(?!\\}))");
     std::smatch matches;
-    while(std::regex_search(*str, matches, reg)) {
+    while(std::regex_search(str, matches, reg)) {
         if(matches.str() == "{{" && tokenCount == 0) {
-                str->replace(matches.position(), 2, global::color::token);
+                str.replace(matches.position(), 2, global::color::token);
                 tokenCount++;
         } else if(matches.str() == "}}" && tokenCount == 1) {
-            str->replace(matches.position(), 2, global::color::command);
+            str.replace(matches.position(), 2, global::color::command);
             tokenCount--;
         } else if(matches.str() == "{{") {
             // insert 0x07 between braces so they don't get matched again
-            str->insert(matches.position() + 1, "\7");
+            str.insert(matches.position() + 1, "\7");
             tokenCount++;
             hasNestedTokens = true;
         } else if(matches.str() == "}}") {
-            str->insert(matches.position() + 1, "\7");
+            str.insert(matches.position() + 1, "\7");
             tokenCount--;
             hasNestedTokens = true;
         }
@@ -121,10 +121,10 @@ void Page::formatTokenSyntax(string* str) {
     }
     
     if(hasNestedTokens) { // remove all the 0x07 again
-        int pos = str->find("\7");
+        int pos = str.find("\7");
         while(pos != string::npos) {
-            str->erase(pos, 1);
-            pos = str->find("\7");
+            str.erase(pos, 1);
+            pos = str.find("\7");
         }
     }
 }

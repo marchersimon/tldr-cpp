@@ -1,12 +1,17 @@
 #pragma once
 
-#include <set>
+#include <iomanip>
 #include <numeric>
 #include <math.h>
 #include "../global.h"
 #include "../cache.h"
 #include "../page.h"
 #include "stem.h"
+
+#define searchDescr (!global::opts::findOverrideDefaults || global::opts::description)
+#define searchExamples (!global::opts::findOverrideDefaults || global::opts::examples)
+#define searchName (!global::opts::findOverrideDefaults || global::opts::name)
+#define searchNameOnly (global::opts::findOverrideDefaults && global::opts::name && !global::opts::description && !global::opts::examples)
 
 class Token {
     public:
@@ -47,6 +52,8 @@ class TPage {
         vector<double> tfidf;
         double termFrequency;
         double score;
+        vector<bool> matchedDescriptionLines; // will store if each line has a match or not
+        vector<bool> matchedExamples;
 };
 
 void formatPage(Page & page);
