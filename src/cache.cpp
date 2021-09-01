@@ -69,7 +69,7 @@ cache::Index cache::getFromIndex(string name) {
 	std::getline(file, fileContent); // whole file only contains 1 newline
 	file.close();
 	// find the page in the file
-	uint pos = fileContent.find("\"" + name + "\"");
+	std::size_t pos = fileContent.find("\"" + name + "\"");
 	if(pos == string::npos) {
 		throw std::runtime_error("404");
 	}

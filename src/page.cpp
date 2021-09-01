@@ -32,7 +32,7 @@ Page::Page() {}
 
 string Page::getLine() {
     string line;
-    uint nextEOL = content.find('\n', pos);
+    std::size_t nextEOL = content.find('\n', pos);
     if(nextEOL == string::npos) {
         return "EOF";
     }
@@ -120,7 +120,7 @@ void Page::formatTokenSyntax(string & str) {
     }
     
     if(hasNestedTokens) { // remove all the 0x07 again
-        uint pos = str.find("\7");
+        std::size_t pos = str.find("\7");
         while(pos != string::npos) {
             str.erase(pos, 1);
             pos = str.find("\7");

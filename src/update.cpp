@@ -172,7 +172,7 @@ vector<string> getInstalledLanguages() {
     vector<string> installedLanguages;
     for(const auto & entry : std::filesystem::directory_iterator(global::HOME + "/.tldr/cache.old/")) {// needs C++17
 		string path = entry.path();
-        uint pos = path.find_last_of('/');
+        std::size_t pos = path.find_last_of('/');
         if(path[pos + 1] != 'p') {// if it's not "pages"
             continue;
         }
