@@ -12,8 +12,8 @@ void parseEntry(struct zipEntry &entry, vector<string> & installedLanguages) {
     entry.platform = "";
     entry.filename = "";
 
-    uint start = 0;
-    uint end = 0;
+    std::size_t start = 0;
+    std::size_t end = 0;
     int i = 0;
 
     if(entry.path == "index.json" || entry.path == "LICENSE.md") {
