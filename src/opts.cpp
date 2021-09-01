@@ -67,11 +67,16 @@ void opts::parse(int argc, char* argv[]) {
 	};
 
 	char opt;
-
+	opterr = 0;
 	while((opt = getopt_long(argc, argv, "hul:vp:s:r:af:nde", long_options, NULL)) != -1) {
 		switch(opt) {
 			case 'h':
 				help = true;
+				if(optind != argc) {
+					if(argv[optind + 1] == "-f" || argv[optind + 1] == "--find") {
+						find = true; // since find has required_argument I can't do it the normal way
+					}
+				}
 				break;
 			case 'u':
 				update = true;
