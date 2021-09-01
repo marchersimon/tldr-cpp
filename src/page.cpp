@@ -32,7 +32,7 @@ Page::Page() {}
 
 string Page::getLine() {
     string line;
-    int nextEOL = content.find('\n', pos);
+    uint nextEOL = content.find('\n', pos);
     if(nextEOL == string::npos) {
         return "EOF";
     }
@@ -84,7 +84,6 @@ void Page::format() {
 }
 
 void Page::formatBackticks(string* str) {
-    bool isBacktick = false;
     std::regex reg("(\\`([^\\`].*?)\\`)");
     std::smatch matches;
     while(std::regex_search(*str, matches, reg)) {
@@ -121,7 +120,7 @@ void Page::formatTokenSyntax(string & str) {
     }
     
     if(hasNestedTokens) { // remove all the 0x07 again
-        int pos = str.find("\7");
+        uint pos = str.find("\7");
         while(pos != string::npos) {
             str.erase(pos, 1);
             pos = str.find("\7");

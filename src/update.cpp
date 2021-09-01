@@ -12,8 +12,8 @@ void parseEntry(struct zipEntry &entry, vector<string> & installedLanguages) {
     entry.platform = "";
     entry.filename = "";
 
-    int start = 0;
-    int end = 0;
+    uint start = 0;
+    uint end = 0;
     int i = 0;
 
     if(entry.path == "index.json" || entry.path == "LICENSE.md") {
@@ -45,10 +45,10 @@ void parseEntry(struct zipEntry &entry, vector<string> & installedLanguages) {
         }
         start = end + 1;
         i++;
-    } while(end != std::string::npos);
+    } while(end != string::npos);
 
     // only extract the page if the language was provided with -l or if nothing was provided check if the language was already installed
-    if(entry.language == "en" || global::opts::update_all == true | installedLanguages.empty()) {
+    if((entry.language == "en") || (global::opts::update_all == true) | (installedLanguages.empty())) {
         entry.wanted = true;
     } else if(global::opts::languages.empty()) {
         if(std::find(installedLanguages.begin(), installedLanguages.end(), entry.language) != installedLanguages.end()) {
@@ -79,7 +79,7 @@ size_t libcurl_WriteCallback(char* downloadBuffer, size_t itemsize, size_t nitem
     vector<char>* buffer = (vector<char>*)bufferPtr;
     int offset = buffer->size();
     buffer->resize(offset + bytes);
-    for(int i = 0; i < bytes; i++) {
+    for(uint i = 0; i < bytes; i++) {
         buffer->at(i + offset) = downloadBuffer[i];
     }
     return bytes; // this is needed by libcurl
@@ -172,7 +172,7 @@ vector<string> getInstalledLanguages() {
     vector<string> installedLanguages;
     for(const auto & entry : std::filesystem::directory_iterator(global::HOME + "/.tldr/cache.old/")) {// needs C++17
 		string path = entry.path();
-        int pos = path.find_last_of('/');
+        uint pos = path.find_last_of('/');
         if(path[pos + 1] != 'p') {// if it's not "pages"
             continue;
         }

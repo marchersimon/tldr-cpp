@@ -74,7 +74,7 @@ void opts::parse(int argc, char* argv[]) {
 			case 'h':
 				help = true;
 				if(optind != argc) {
-					if(argv[optind + 1] == "-f" || argv[optind + 1] == "--find") {
+					if(argv[optind + 1] == string("-f") || argv[optind + 1] == string("--find")) {
 						find = true; // since find has required_argument I can't do it the normal way
 					}
 				}

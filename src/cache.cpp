@@ -69,7 +69,7 @@ cache::Index cache::getFromIndex(string name) {
 	std::getline(file, fileContent); // whole file only contains 1 newline
 	file.close();
 	// find the page in the file
-	int pos = fileContent.find("\"" + name + "\"");
+	uint pos = fileContent.find("\"" + name + "\"");
 	if(pos == string::npos) {
 		throw std::runtime_error("404");
 	}
@@ -221,11 +221,11 @@ void cache::stat(string name) {
 		for(const auto & l : languages) {
 			if(index.contains({p, l})) {
 				std::cout << global::color::stat_checkmark + "\xE2\x9C\x94" + global::color::dfault; // check mark
-				for(int i = 0; i < l.length(); i++) {
+				for(uint i = 0; i < l.length(); i++) {
 					std::cout << " ";
 				}
 			} else {
-				for(int i = 0; i < l.length() + 1; i++) {
+				for(uint i = 0; i < l.length() + 1; i++) {
 					std::cout << " ";
 				}
 			}

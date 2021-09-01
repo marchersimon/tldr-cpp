@@ -31,7 +31,6 @@ int Line::size() {
 
 string Line::str() const {
 	string str;
-	bool precedingSpace = true;
 	for(const Token & token : line) {
 		str.append(token.orig);
 	}
@@ -153,7 +152,7 @@ void formatPage(Page & page) {
     // Remove "# " in front of page name
 	page.name.erase(0, 2);
 
-	int pos;
+	uint pos;
 	if(searchDescr) {
 		// Remove "> " in the original descrition
 		pos = page.description.find("> ");
@@ -230,7 +229,7 @@ void printMatches(vector<TPage> & tpages) {
 		std::cout << tpage.name.str();
 		std::cout << string(maxNamelen - tpage.namelen, ' ') << tpage.descr[0].str() << std::endl;
 		if(searchDescr) {
-			for(int i = 1; i < tpage.descr.size(); i++) {
+			for(uint i = 1; i < tpage.descr.size(); i++) {
 				std::cout << string(maxNamelen + statlen, ' ') << tpage.descr[i].str() << std::endl;
 			}
 		}
@@ -248,7 +247,7 @@ void highlightMatches(vector<TPage> & tpages, vector<string> searchTerms) {
 		if(searchName) {
 			for(Token & token : tpage.name) {
 				for(string & searchTerm : searchTerms) {
-					int pos = token.orig.find(searchTerm);
+					uint pos = token.orig.find(searchTerm);
 					if(pos != string::npos) {
 						token.orig.insert(pos + searchTerm.length(), global::color::dfault);
 						token.orig.insert(pos, global::color::foundMatch);
@@ -314,7 +313,7 @@ vector<double> getIDF(vector<TPage> & tpages, std::vector<string> & terms) {
 	
 	for(const string & word : terms) {
 		int docsContainingWord = 0;
-		for(int i = 0; i < tpages.size(); i++) {
+		for(uint i = 0; i < tpages.size(); i++) {
 			if(searchDescr) {
 				for(Line & descr : tpages[i].descr) {
 					for(Token & token : descr) {
@@ -337,7 +336,7 @@ vector<double> getIDF(vector<TPage> & tpages, std::vector<string> & terms) {
 			}
 			if(searchName) {
 				for(Token & token : tpages[i].name) {
-					int pos = token.orig.find(word);
+					uint pos = token.orig.find(word);
 					if(pos != string::npos) {
 						docsContainingWord++;
 						goto nextPage;
@@ -391,7 +390,7 @@ void calculateTFIDF(auto & tpages, std::vector<string> SVMset, vector<double> id
 			if(searchName) {
 				for(Token & token : tpage.name) {
 					numberOfTerms++;
-					int pos = token.orig.find(word);
+					uint pos = token.orig.find(word);
 					if(pos != string::npos) {
 						matchesInDescription++;
 					}
@@ -408,7 +407,7 @@ void calculateTFIDF(auto & tpages, std::vector<string> SVMset, vector<double> id
 
 double getDotProduct(vector<double> v1, vector<double> v2) {
 	double dotProduct = 0;
-	for(int i = 0; i < v1.size(); i++) {
+	for(uint i = 0; i < v1.size(); i++) {
 		dotProduct += v1[i] * v2[i];
 	}
 	return dotProduct;
@@ -428,7 +427,7 @@ void find(vector<string> searchTerms) {
 		if(searchName) {
 			for(Token & token : tpage.name) {
 				for(string & searchTerm : searchTerms) {
-					int pos = token.orig.find(searchTerm);
+					uint pos = token.orig.find(searchTerm);
 					if(pos != string::npos) {
 						tpage.hasMatch = true;
 						goto nextPage;
@@ -487,7 +486,7 @@ void find(vector<string> searchTerms) {
 		IDF = getIDF(tpages, searchTerms);
 	} else {
 		// initialize the score with 1
-		for(int i = 0; i < searchTerms.size(); i++) {
+		for(uint i = 0; i < searchTerms.size(); i++) {
 			IDF.push_back(1);
 		}
 	}
@@ -495,7 +494,7 @@ void find(vector<string> searchTerms) {
 
 	// print the weight/importance of each search term
 	if(global::opts::verbose) {
-		for(int i = 0; i < searchTerms.size(); i++) {
+		for(uint i = 0; i < searchTerms.size(); i++) {
 			std::cout << searchTerms[i] << ": " << IDF[i] << std::endl;
 		}
 		std::cout << std::endl;
@@ -547,7 +546,7 @@ void find(vector<string> searchTerms) {
 						tpage.score *= 1.20;
 					} else {
 						// if one of it contains the search term
-						int pos = token.orig.find(searchTerm);
+						uint pos = token.orig.find(searchTerm);
 						if(pos != string::npos) {
 							tpage.score *= 1.15;
 						} 
