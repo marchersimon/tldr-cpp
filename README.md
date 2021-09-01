@@ -17,7 +17,8 @@ Options:
       --raw       Display the raw Markdown page without formatting
   -r, --render    Specify the path to a custom Markdown page to render
   -a, --all       When used with --update, this updates all languages, instead of just the installed ones
-  -f, --find      Perform a full-text search through all pages. Modifiers are --name, --description and --examples.
+  -f, --find      Perform a full-text search through all pages. Modifiers are --name, --description and --example
+    , --stem      In case you don't need fancy English. Enjoy pure information. (This version of the page will be searched in with --find)
   -h, --help:     Display help about tldr-cpp
 ```
 

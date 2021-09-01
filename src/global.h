@@ -27,6 +27,7 @@ namespace global {
 		extern bool name;
 		extern bool description;
 		extern bool examples;
+		extern bool stem;
 	}
 
 	extern string tldrPath;

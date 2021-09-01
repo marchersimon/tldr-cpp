@@ -65,6 +65,15 @@ int main(int argc, char *argv[]) {
 	Page page;
 	trycatch(page = Page(cache::getPage(global::opts::file)));
 
+	if(global::opts::stem) {
+		if(!global::opts::languages.empty()) {
+			std::cout << "Option --stem is only available for English pages!" << std::endl;
+			return 0;
+		}
+		printStemmedPage(page);
+		return 0;
+	}
+
 	if(!global::opts::raw) {
 		page.format();
 	}

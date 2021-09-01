@@ -33,6 +33,7 @@ class Line {
         vector<Token>::iterator end();
         int size();
         string str() const;
+        string sstr() const;
 };
 
 class TExample {
@@ -65,3 +66,4 @@ void find(vector<string> search_terms);
 string join(vector<string> vect);
 void printMatches(const vector<TPage> & matches);
 void highlightMatches(vector<TPage> & matches, vector<string> searchTerms);
+void printStemmedPage(Page page);

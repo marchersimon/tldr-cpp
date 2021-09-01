@@ -38,6 +38,17 @@ string Line::str() const {
 	return str;
 }
 
+string Line::sstr() const { // get string from searchable variant
+	string sstr;
+	for(const Token & token : line) {
+		sstr.append(token.srch);
+		if(isalpha(token.srch[0])) {
+			sstr.append(" ");
+		}
+	}
+	return sstr;
+}
+
 // class Token
 //======================l
 
@@ -651,4 +662,53 @@ vector<string> tokenizeBySpace (string s) {
 	}
 	tokens.push_back(token);
 	return tokens;
+}
+
+/*
+Print a page in tokenized and stemmed format
+*/
+void printStemmedPage(Page page) {
+	formatPage(page);
+
+	TPage tpage;
+	tpage.name = tokenizeBySpace(page.name); // git local-commits -> {"git", "local-commits"}
+	tpage.platform = page.platform; 
+	// get all description lines
+	std::stringstream descrStream(page.description);
+	while(descrStream.good()) {
+		string nextLine;
+		std::getline(descrStream, nextLine);
+		tpage.descr.push_back(tokenize(nextLine));
+	}
+	tpage.descr.pop_back(); // since page.description ends with \n, getline will create an empty element at the end
+
+	// get all examples
+	for(const auto & example : page.examples) {
+		TExample texample;
+		texample.descr = tokenize(example.description);
+		texample.command = example.command;
+		tpage.examples.push_back(texample);
+	}
+
+	// create the searchable variant of all descriptions
+	for(Line & line : tpage.descr) {
+		for(Token & token : line) {
+			token.makeSearchable();
+		}
+	}
+	for(TExample & example : tpage.examples) {
+		for(Token & token : example.descr) {
+			token.makeSearchable();
+		}
+	}
+
+	std::cout << tpage.name.str() << std::endl << std::endl;
+	for(const Line & descr : tpage.descr) {
+		std::cout << descr.sstr() << std::endl;
+	}
+	std::cout << std::endl;
+	for(const TExample & example : tpage.examples) {
+		std::cout << example.descr.sstr() << std::endl << std::endl;
+		std::cout << example.command << std::endl << std::endl;
+	}
 }
