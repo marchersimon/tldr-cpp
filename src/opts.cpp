@@ -64,6 +64,7 @@ void opts::parse(int argc, char* argv[]) {
 		{"description", no_argument, NULL, 'd'},
 		{"examples", no_argument, NULL, 'e'},
 		{"stem", no_argument, NULL, 't'},
+		{"sub", no_argument, NULL, 'b'},
 		{NULL, 0, NULL, 0},
 	};
 
@@ -121,8 +122,11 @@ void opts::parse(int argc, char* argv[]) {
 				examples = true;
 				findOverrideDefaults = true;
 				break;
-			case 't': //stem
+			case 't':
 				stem = true;
+				break;
+			case 'b':
+				sub = true;
 				break;
 		}
 	}

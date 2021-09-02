@@ -233,3 +233,69 @@ void cache::stat(string name) {
 		std::cout << std::endl;
 	}
 }
+
+cache::CommandPreview::CommandPreview(string name, string description) {
+	this->description = description;
+	this->name = name;
+}
+
+void cache::printSubcommands(string baseCommand) {
+	vector<CommandPreview> subcommands;
+	uint maxNameLen = 0;
+	bool isBase;
+	for(const auto & entry : std::filesystem::recursive_directory_iterator(global::tldrPath + "pages/")) {
+		if(entry.is_directory()) {
+			continue;
+		}
+		std::size_t pos = entry.path().string().find_last_of('/');
+		string fileName;
+		if(pos != string::npos) {
+			fileName =  entry.path().string().substr(pos + 1, entry.path().string().size() - pos - 4);
+		}
+		if(fileName == baseCommand) {
+			isBase = true;
+		} else if(!fileName.starts_with(baseCommand + "-")) {
+			continue;
+		}
+		std::ifstream fileStream(entry.path());
+		string file, temp;
+		while(std::getline(fileStream, temp)) {
+			file += temp + '\n';
+		}
+		fileStream.close();
+		Page page(file);
+		page.name.erase(0, 2);
+		// double check if the command is really a subcommand (unlike e.g. ssh-keygen)
+		string commandName = page.name;
+		if(!commandName.starts_with(baseCommand + " ") && !isBase) {
+			continue;
+		}
+		// get first line of description
+		page.description.erase(0, 2);
+		pos = page.description.find('\n');
+		string descr = page.description.substr(0, pos);
+		page.formatBackticks(descr);
+
+		if(commandName.length() > maxNameLen) {
+			maxNameLen = commandName.length();
+		}
+		subcommands.push_back({commandName, descr});
+		isBase = false;
+	}
+
+	if(subcommands.size() == 1) {
+		std::cout << baseCommand << " doesn't seem to have documented sub-commands." << std::endl;
+		return;
+	} else if(subcommands.size() == 0) {
+		std::cout << baseCommand << " does not even have documentation itself." << std::endl;
+	}
+
+	maxNameLen += 2;
+
+	std::sort(subcommands.begin(), subcommands.end(), [](const CommandPreview & x, const CommandPreview & y) {return x.name < y.name;});
+
+	for(const auto & command : subcommands) {
+		std::cout << command.name << string(maxNameLen - command.name.length(), ' ');
+		std::cout << command.description << std::endl;
+	}
+} 

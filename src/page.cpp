@@ -73,22 +73,22 @@ void Page::format() {
         description.erase(matches.position() + matches.length() - 2, 1);
         description.erase(matches.position(), 1);
     }
-    formatBackticks(&description);
+    formatBackticks(description);
 
     for (auto & example : examples) {
-        formatBackticks(&example.description);
+        formatBackticks(example.description);
         example.command.replace(0, 1, global::color::command);
         example.command.replace(example.command.length() - 1, 1, global::color::dfault);
         formatTokenSyntax(example.command);
     }
 }
 
-void Page::formatBackticks(string* str) {
+void Page::formatBackticks(string & str) {
     std::regex reg("(\\`([^\\`].*?)\\`)");
     std::smatch matches;
-    while(std::regex_search(*str, matches, reg)) {
-        str->replace(matches.position() + matches.length() - 1, 1, global::color::dfault);
-        str->replace(matches.position(), 1, global::color::backtick);
+    while(std::regex_search(str, matches, reg)) {
+        str.replace(matches.position() + matches.length() - 1, 1, global::color::dfault);
+        str.replace(matches.position(), 1, global::color::backtick);
     }
 }
 

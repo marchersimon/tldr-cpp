@@ -26,6 +26,7 @@ namespace global {
 		bool description = false;
 		bool examples = false;
 		bool stem = false;
+		bool sub = false;
 	}
 
 	string tldrPath;

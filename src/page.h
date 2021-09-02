@@ -31,6 +31,6 @@ class Page {
 
         void print();
         void format();
-        void formatBackticks(string* str);
+        void formatBackticks(string & str);
         static void formatTokenSyntax(string & str);
 };

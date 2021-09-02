@@ -28,6 +28,11 @@ int main(int argc, char *argv[]) {
 
 	trycatch(global::init());
 
+	if(global::opts::sub) {
+		cache::printSubcommands(global::opts::file);
+		return 0;
+	}
+
 	if(global::opts::find) {
 		find(global::opts::search_terms);
 		/*for(auto & s : global::opts::search_terms) {

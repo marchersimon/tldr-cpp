@@ -24,6 +24,13 @@ namespace cache {
 		bool contains(Target target);
 	};
 
+	class CommandPreview {
+		public:
+			CommandPreview(string name, string language);
+			string name;
+			string description;
+	};
+
 	void verify();
 
 	void findPlatforms();
@@ -35,4 +42,6 @@ namespace cache {
 	Index getFromIndex(string name);
 
 	void stat(string name);
+
+	void printSubcommands(string baseCommand);
 }

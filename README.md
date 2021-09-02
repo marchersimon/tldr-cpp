@@ -19,6 +19,7 @@ Options:
   -a, --all       When used with --update, this updates all languages, instead of just the installed ones
   -f, --find      Perform a full-text search through all pages. Modifiers are --name, --description and --example
     , --stem      In case you don't need fancy English. Enjoy pure information. (This version of the page will be searched in with --find)
+    , --sub       Get a list of all documented sub-commands
   -h, --help:     Display help about tldr-cpp
 ```
 
