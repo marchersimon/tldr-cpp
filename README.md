@@ -33,14 +33,13 @@ On Arch Linux and Arch based systems, `tldr-cpp-git` can be installed from the A
 yay -S tldr-cpp-git
 ```
 
-### Ubuntu
+### Debian/Ubuntu
 
 On Ubuntu, `tldr-cpp` and it's dependencies have to be installed manually:
 ```
 sudo apt install libcurl4-openssl-dev libzip-dev
 git clone https://github.com/marchersimon/tldr-cpp
 cd tldr-cpp
-make build
 sudo make install
 ```
 ### Removal
