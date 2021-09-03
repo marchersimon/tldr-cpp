@@ -13,7 +13,7 @@ install: tldr
 tldr-pkg:
 	$(CXX) $(CXXFLAGS) src/*.cpp src/find/*.cpp $(LDFLAGS) -o tldr
 
-install-pkg: tldr-pkg
+install-pkg:
 	install -Dm755 tldr $(DESTDIR)$(PREFIX)/bin/
 
 uninstall:
