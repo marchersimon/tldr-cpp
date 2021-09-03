@@ -29,6 +29,7 @@ namespace global {
 		extern bool examples;
 		extern bool stem;
 		extern bool sub;
+		extern bool destroy;
 	}
 
 	extern string tldrPath;

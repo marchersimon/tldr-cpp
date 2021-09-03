@@ -1,6 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <filesystem>
+#include <unistd.h>
+#include <pwd.h>
+
+#include "errno.h"
 
 #include "opts.h"
 #include "cache.h"
@@ -16,6 +20,7 @@
 						}
 
 void displayHelp();
+void destroy();
 
 int main(int argc, char *argv[]) {
 
@@ -23,6 +28,11 @@ int main(int argc, char *argv[]) {
 
 	if(global::opts::help) {
 		displayHelp();
+		return 0;
+	}
+
+	if(global::opts::destroy) {
+		trycatch(destroy());
 		return 0;
 	}
 
@@ -203,4 +213,16 @@ void displayHelp() {
 		"  -a, --all       When used with --update, this updates all languages, instead of just the installed ones\n"
 		"  -h, --help:     Display this help";
 		*/
+}
+
+void destroy() {
+	if(unlink("/usr/bin/tldr") != 0) { // this only removes the filesystem entry, so the file will only be gone if the last descriptor to it is closed
+		throw std::runtime_error("/usr/bin/tldr could not be removed");
+	}
+	std::cout << "Removed executable /usr/bin/tldr" << std::endl;
+
+	struct passwd *pw = getpwuid(getuid());
+
+	std::filesystem::remove_all(string(pw->pw_dir) + "/.tldr"); // I can't use $HOME here, since $HOME would be /root
+	std::cout << "Removed tldr cache at " << pw->pw_dir << "/.tldr" << std::endl;
 }

@@ -18,8 +18,9 @@ Options:
   -r, --render    Specify the path to a custom Markdown page to render
   -a, --all       When used with --update, this updates all languages, instead of just the installed ones
   -f, --find      Perform a full-text search through all pages. Modifiers are --name, --description and --example
-    , --stem      In case you don't need fancy English. Enjoy pure information. (This version of the page will be searched in with --find)
-    , --sub       Get a list of all documented sub-commands
+      --stem      In case you don't need fancy English. Enjoy pure information. (This version of the page will be searched in with --find)
+      --sub       Get a list of all documented sub-commands
+      --destroy   Remove the tldr cache and the tldr executable. This option is only available if tldr-cpp was installed manually
   -h, --help:     Display help about tldr-cpp
 ```
 
@@ -42,3 +43,10 @@ cd tldr-cpp
 make build
 sudo make install
 ```
+### Removal
+
+To remove the executable and the tldr cache, just run
+```
+sudo tldr --destroy
+```
+This option will only be available if `tldr-cpp` was installed manually.
