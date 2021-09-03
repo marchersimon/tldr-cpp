@@ -40,17 +40,3 @@ git clone https://github.com/marchersimon/tldr-cpp
 cd tldr-cpp
 sudo make install
 ```
-
-## Removal
-
-Remove `tldr` executable from `/usr/bin`:
-
-```
-sudo make uninstall
-```
-
-Remove cached files:
-
-```
-rm -rf $HOME/.tldr
-```
