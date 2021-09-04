@@ -216,13 +216,38 @@ void displayHelp() {
 }
 
 void destroy() {
+	char *su = getenv("SUDO_USER"); // get the username of whom runs sudo
+	if(!su) {
+		throw std::runtime_error("Please run this command via \'sudo\'");
+	}
+
+	std::cout << "Are you sure you want to " << global::color::title 
+			  << "uninstall tldr?" << global::color::dfault << " (y/n): ";
+	string yesno;
+	std::cin >> yesno;
+	if(yesno != "y") {
+		throw std::runtime_error("Canceled uninstallation");
+	}
+
 	if(unlink("/usr/bin/tldr") != 0) { // this only removes the filesystem entry, so the file will only be gone if the last descriptor to it is closed
 		throw std::runtime_error("/usr/bin/tldr could not be removed");
 	}
 	std::cout << "Removed executable /usr/bin/tldr" << std::endl;
 
-	struct passwd *pw = getpwuid(getuid());
+	string cache_dir = "/home/" + string(su) + "/.tldr";
+	if(std::filesystem::exists(cache_dir)) {
+		if(std::filesystem::remove_all(cache_dir)) {
+			std::cout << "Removed tldr cache at " << cache_dir << std::endl;
+		} else {
+			std::cout << "Error removing tldr cache at " << cache_dir << std::endl;
+			std::cout << "Please remove it manually" << std::endl;
+		}
+	}
 
+	// Original code that points to /root
+	/*
+	struct passwd *pw = getpwuid(getuid());
 	std::filesystem::remove_all(string(pw->pw_dir) + "/.tldr"); // I can't use $HOME here, since $HOME would be /root
 	std::cout << "Removed tldr cache at " << pw->pw_dir << "/.tldr" << std::endl;
+	*/
 }
