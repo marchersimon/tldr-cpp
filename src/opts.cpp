@@ -65,6 +65,7 @@ void opts::parse(int argc, char* argv[]) {
 		{"examples", no_argument, NULL, 'e'},
 		{"stem", no_argument, NULL, 't'},
 		{"sub", no_argument, NULL, 'b'},
+		{"pr", required_argument, NULL, 'g'},
 		#ifdef _MANUAL_INSTALL_
 		{"destroy", no_argument, NULL, 'y'},
 		#endif
@@ -130,6 +131,10 @@ void opts::parse(int argc, char* argv[]) {
 				break;
 			case 'b':
 				sub = true;
+				break;
+			case 'g':
+				pr = true;
+				prNumber = optarg;
 				break;
 			#ifdef _MANUAL_INSTALL_
 			case 'y':

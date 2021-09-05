@@ -8,5 +8,6 @@
 | `cache.cpp` | Handles any direct interactions with the local cache |
 | `update.cpp` | Manages updating the local cache by downloading and extracting `tldr.zip` in memory |
 | `page.cpp` | Holds a single page as object to parse, print or analyze it |
+| `pr.cpp` | Prints pages modified in PRs, but not yet merged by accessing the GitHub API |
 | `find/find.cpp` | Full-text search algorithm |
 | `find/stem.cpp` | Porter stemmer for stemming a page before performing a full-text search |

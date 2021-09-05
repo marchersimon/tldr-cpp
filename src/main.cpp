@@ -12,6 +12,7 @@
 #include "update.h"
 #include "page.h"
 #include "find/find.h"
+#include "pr.h"
 
 #define trycatch(...)	try {__VA_ARGS__;} \
 						catch (const std::runtime_error& e) { \
@@ -28,6 +29,11 @@ int main(int argc, char *argv[]) {
 
 	if(global::opts::help) {
 		displayHelp();
+		return 0;
+	}
+
+	if(global::opts::pr) {
+		trycatch(printPR());
 		return 0;
 	}
 

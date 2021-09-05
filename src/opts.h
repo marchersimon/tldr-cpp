@@ -5,6 +5,8 @@
 #include <vector>
 #include <sstream>
 
+#include <iostream>
+
 #include "global.h"
 
 namespace opts {

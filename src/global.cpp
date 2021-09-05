@@ -28,6 +28,8 @@ namespace global {
 		bool stem = false;
 		bool sub = false;
 		bool destroy = false;
+		bool pr = false;
+		string prNumber;
 	}
 
 	string tldrPath;

@@ -21,6 +21,7 @@ Options:
       --stem      In case you don't need fancy English. Enjoy pure information. (This version of the page will be searched in with --find)
       --sub       Get a list of all documented sub-commands
       --destroy   Remove the tldr cache and the tldr executable. This option is only available if tldr-cpp was installed manually
+      --pr        Print a page being modified in an open PR, specifying the PR number (e.g. --pr 1234)
   -h, --help:     Display help about tldr-cpp
 ```
 

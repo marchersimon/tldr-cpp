@@ -102,8 +102,7 @@ vector<char> downloadZip() {
     CURLcode res = curl_easy_perform(curl);
 
     curl_easy_cleanup(curl);
-    if(res != CURLE_OK) {
-    }
+    
     switch(res) {
         case CURLE_OK:
             break;

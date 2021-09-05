@@ -30,6 +30,8 @@ namespace global {
 		extern bool stem;
 		extern bool sub;
 		extern bool destroy;
+		extern bool pr;
+		extern string prNumber;
 	}
 
 	extern string tldrPath;
