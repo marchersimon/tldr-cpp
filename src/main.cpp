@@ -244,10 +244,4 @@ void destroy() {
 		}
 	}
 
-	// Original code that points to /root
-	/*
-	struct passwd *pw = getpwuid(getuid());
-	std::filesystem::remove_all(string(pw->pw_dir) + "/.tldr"); // I can't use $HOME here, since $HOME would be /root
-	std::cout << "Removed tldr cache at " << pw->pw_dir << "/.tldr" << std::endl;
-	*/
 }
