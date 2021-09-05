@@ -235,13 +235,10 @@ void destroy() {
 	std::cout << "Removed executable /usr/bin/tldr" << std::endl;
 
 	string cache_dir = "/home/" + string(su) + "/.tldr";
-	if(std::filesystem::exists(cache_dir)) {
-		if(std::filesystem::remove_all(cache_dir)) {
-			std::cout << "Removed tldr cache at " << cache_dir << std::endl;
-		} else {
-			std::cout << "Error removing tldr cache at " << cache_dir << std::endl;
-			std::cout << "Please remove it manually" << std::endl;
-		}
+	if(std::filesystem::remove_all(cache_dir)) {
+		std::cout << "Removed tldr cache at " << cache_dir << std::endl;
+	} else {
+		std::cout << "Error removing tldr cache at " << cache_dir << std::endl;
+		std::cout << "Please remove it manually" << std::endl;
 	}
-
 }
