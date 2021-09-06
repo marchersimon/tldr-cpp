@@ -235,6 +235,10 @@ void destroy() {
 		throw std::runtime_error("Canceled uninstallation");
 	}
 
+	if(string(su) == "root") {
+		throw std::runtime_error("It's not recommended to run tldr by root\nCanceled uninstallation");
+	}
+
 	if(unlink("/usr/bin/tldr") != 0) { // this only removes the filesystem entry, so the file will only be gone if the last descriptor to it is closed
 		throw std::runtime_error("/usr/bin/tldr could not be removed");
 	}
