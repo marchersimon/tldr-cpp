@@ -229,7 +229,7 @@ void destroy() {
 		throw std::runtime_error("Canceled uninstallation");
 	}
 
-	if (string(su) == "root") {
+	if(string(su) == "root") {
 		throw std::runtime_error("It's not recommended to run tldr by root\nCanceled uninstallation");
 	}
 
