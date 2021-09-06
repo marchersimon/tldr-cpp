@@ -229,18 +229,16 @@ void destroy() {
 		throw std::runtime_error("Canceled uninstallation");
 	}
 
+	if (string(su) == "root") {
+		throw std::runtime_error("It's not recommended to run tldr by root\nCanceled uninstallation");
+	}
+
 	if(unlink("/usr/bin/tldr") != 0) { // this only removes the filesystem entry, so the file will only be gone if the last descriptor to it is closed
 		throw std::runtime_error("/usr/bin/tldr could not be removed");
 	}
 	std::cout << "Removed executable /usr/bin/tldr" << std::endl;
 	
-	string cache_dir;
-	if (string(su) == "root") {
-		cache_dir = "/root/.tldr";
-	} else {
-		cache_dir = "/home/" + string(su) + "/.tldr";
-	}
-	
+	string cache_dir = "/home/" + string(su) + "/.tldr";
 	if(std::filesystem::remove_all(cache_dir)) {
 		std::cout << "Removed tldr cache at " << cache_dir << std::endl;
 	} else {
