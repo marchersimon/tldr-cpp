@@ -234,7 +234,7 @@ void destroy() {
 	}
 	std::cout << "Removed executable /usr/bin/tldr" << std::endl;
 	
-	string cache_dir = "";
+	string cache_dir;
 	if (string(su) == "root") {
 		cache_dir = "/root/.tldr";
 	} else {
