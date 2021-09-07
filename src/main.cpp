@@ -25,7 +25,7 @@ void destroy();
 
 int main(int argc, char *argv[]) {
 
-	opts::parse(argc, argv);
+	trycatch(opts::parse(argc, argv));
 
 	if(global::opts::help) {
 		displayHelp();

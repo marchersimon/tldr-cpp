@@ -1,7 +1,7 @@
 PREFIX = /usr
 
 CXX ?= g++
-CXXFLAGS += -std=c++20 -Wall
+CXXFLAGS += -std=c++20 -Wall -Os
 LDFLAGS += -lcurl -lzip
 
 tldr: clean

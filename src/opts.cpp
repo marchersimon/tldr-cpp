@@ -2,15 +2,33 @@
 
 using namespace global::opts;
 
+vector<string> arguments;
+uint index;
+
 /*
 Parses a comma-separated list of languages like "en,fr,it" and puts them in a list
 */
-void opts::parseLanguages(char *optarg) {
+void parseLanguages(string lang) {
 	languages.clear();
-	std::stringstream languagelist(optarg);
+	std::stringstream languagelist(lang);
 	while(languagelist.good()) {
 		string nextLanguage;
 		std::getline(languagelist, nextLanguage, ',');
+		for(char & c : nextLanguage) {
+			if(ispunct(c) && c != '_') {
+				throw std::runtime_error("Invalid language: " + nextLanguage + ". Only letters and underscores are allowed");
+			}
+		}
+		if(nextLanguage.size() < 2) {
+			throw std::runtime_error("Language codes have to be at least two letters long.");
+		} else {
+			nextLanguage[0] = tolower(nextLanguage[0]);
+			nextLanguage[1] = tolower(nextLanguage[1]); // DE to de
+			if(nextLanguage.size() == 5) {
+				nextLanguage[3] = toupper(nextLanguage[3]);
+				nextLanguage[4] = toupper(nextLanguage[4]); // zh_tw to zh_TW
+			}
+		}
 		languages.push_back(nextLanguage);
 	}
 }
@@ -18,138 +36,134 @@ void opts::parseLanguages(char *optarg) {
 /*
 Parses the rest of the arguments and puts them into a list
 */
-void opts::parseSearchTerm(char *optarg, int argc, char *argv[]) {
-	// in case the search string was provided as `tldr -f search` or `tldr -f "search1 search2 search3"`
-	std::stringstream arglist(optarg);
-	while(arglist.good()) {
-		string nextWord;
-		std::getline(arglist, nextWord, ' ');
-		if(!nextWord.empty()) {
-			search_terms.push_back(nextWord);
+void parseSearchTerms() {
+	index++;
+	for(; index < arguments.size(); index++) {
+		std::stringstream argument(arguments[index]);
+		while(argument.good()) {
+			string nextArgument;
+			std::getline(argument, nextArgument, ' ');
+			search_terms.push_back(nextArgument);
 		}
 	}
-	// when running `tldr -f "search1 search2" search3`, search3 will be ignored
-	if(search_terms.size() > 1) {
-		return;
+	if(search_terms.empty()) {
+		throw std::runtime_error(arguments[index - 1] + " needs at least one argument");
 	}
-	// in case the search string was provided as `tldr -f search1 search2 search3`
-	for(int i = optind; i < argc; i++) {
-		search_terms.push_back(argv[i]);
-	}
+}
 
-	// convert to lowercase
-	for(auto & search_term : search_terms) {
-		std::transform(search_term.begin(), search_term.end(), search_term.begin(),
-    		[](unsigned char c){ return std::tolower(c); });
+vector<string> tokenizeOpts(const int & argc, char* argv[]) {
+	vector<string> arguments;
+	for(int i = 1; i < argc; i++) {
+		string argument = argv[i];
+		if(argument.starts_with("-") && !argument.starts_with("--")) {
+			for(uint j = 1; j < argument.size(); j++) {
+				arguments.push_back(string("-") + argument[j]);
+			}
+		} else {
+			arguments.push_back(argument);
+		}
+	}
+	return arguments;
+}
+
+bool isArgument(vector<string> flags) {
+	for(const string & flag : flags) {
+		if(arguments[index] == flag) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void parsePage() {
+	uint i;
+	for(i = index; i < arguments.size(); i++) {
+		if(arguments[i].starts_with("-")) {
+			break;
+		} 
+		file += arguments[i];
+		file += "-";
+	}
+	file.pop_back();
+	index += i - index - 1;
+}
+
+string nextArg() {
+	index++;
+	if(index >= arguments.size()) {
+		throw std::runtime_error(arguments[index - 1] + " needs an argument");
+	} else {
+		return arguments[index];
 	}
 }
 
 /*
 Parses all command line argument and saves them to global::opts::...
 */
-void opts::parse(int argc, char* argv[]) {
+void opts::parse(const int & argc, char* argv[]) {
 
-	static struct option long_options[] = {
-    	{"help", no_argument, NULL, 'h'},
-	    {"update", no_argument, NULL, 'u'},
-	    {"language", required_argument, NULL, 'l'},
-		{"verbose", no_argument, NULL, 'v'},
-		{"platform", required_argument, NULL, 'p'},
-		{"raw", no_argument, NULL, 'm'},
-		{"stat", required_argument, NULL, 's'},
-		{"render", required_argument, NULL, 'r'},
-		{"all", no_argument, NULL, 'a'},
-		{"find", required_argument, NULL, 'f'},
-		{"name", no_argument, NULL, 'n'},
-		{"description", no_argument, NULL, 'd'},
-		{"examples", no_argument, NULL, 'e'},
-		{"stem", no_argument, NULL, 't'},
-		{"sub", no_argument, NULL, 'b'},
-		{"pr", required_argument, NULL, 'g'},
+	arguments = tokenizeOpts(argc, argv);
+
+	bool expectedPage = true;
+	bool gotPage = false;
+
+	for(index = 0; index < arguments.size(); index++) {
+		#define arg arguments[index]
+		if(isArgument({"-h", "--help"})) {
+			help = true;
+			expectedPage = false;
+		} else if(isArgument({"-u", "--update"})) {
+			update = true;
+			expectedPage = false;
+		} else if(isArgument({"-l", "--language"})) {
+			parseLanguages(nextArg());
+		} else if(isArgument({"-p", "--platform"})) {
+			platform = nextArg();
+		} else if(isArgument({"-v", "--verbose"})) {
+			verbose = true;
+		} else if(isArgument({"-s", "--stat"})) {
+			stat = true;
+		} else if(isArgument({"--raw"})) {
+			raw = true;
+		} else if(isArgument({"-r", "--render"})) {
+			expectedPage = false;
+			render = true;
+			file = nextArg();
+		} else if(isArgument({"-a", "--all"})) {
+			update_all = true;
+		} else if(isArgument({"-f", "--find"})) {
+			expectedPage = false;
+			find = true;
+			if(!help) {
+				parseSearchTerms();
+			}
+		} else if(isArgument({"--stem"})) {
+			stem = true;
+		} else if(isArgument({"--sub"})) {
+			sub = true;
 		#ifdef _MANUAL_INSTALL_
-		{"destroy", no_argument, NULL, 'y'},
+		} else if(isArgument({"--destroy"})) {
+			destroy = true;
+			expectedPage = false;
 		#endif
-		{NULL, 0, NULL, 0},
-	};
-
-	char opt;
-	opterr = 0;
-	while((opt = getopt_long(argc, argv, "hul:vp:s:r:af:nde", long_options, NULL)) != -1) {
-		switch(opt) {
-			case 'h':
-				help = true;
-				if(optind != argc) {
-					if(string(argv[optind]) == "-f" || string(argv[optind]) == "--find") {
-						find = true; // since find has required_argument I can't do it the normal way
-					}
+		} else if(isArgument({"--pr"})) {
+			pr = true;
+			expectedPage = false;
+			prNumber = nextArg();
+		} else {
+			if(arg[0] == '-') {
+				throw std::runtime_error(arg + ": Unknown argument");
+			} else {
+				if(gotPage) {
+					throw std::runtime_error("Unexpected argument: " + arg);
 				}
-				break;
-			case 'u':
-				update = true;
-				break;
-			case 'l':
-				parseLanguages(optarg);
-				break;
-			case 'v':
-				verbose = true;
-				break;
-			case 'p':
-				platform = optarg;
-				break;
-			case 'm':
-				raw = true;
-				break;
-			case 's':
-				stat = true;
-				file = optarg;
-				break;
-			case 'r':
-				render = true;
-				file = optarg;
-				break;
-			case 'a':
-				update_all = true;
-				break;
-			case 'f':
-				find = true;
-				parseSearchTerm(optarg, argc, argv);
-				break;
-			case 'n':
-				name = true;
-				findOverrideDefaults = true;
-				break;
-			case 'd':
-				description = true;
-				findOverrideDefaults = true;
-				break;
-			case 'e':
-				examples = true;
-				findOverrideDefaults = true;
-				break;
-			case 't':
-				stem = true;
-				break;
-			case 'b':
-				sub = true;
-				break;
-			case 'g':
-				pr = true;
-				prNumber = optarg;
-				break;
-			#ifdef _MANUAL_INSTALL_
-			case 'y':
-				destroy = true;
-				break;
-			#endif
+				parsePage();
+				gotPage = true;
+			}
 		}
 	}
 
-    // if there are remaining arguments -> the page name
-	if(optind < argc) {
-		file = argv[optind];
-	}
-	for(int i = optind + 1; i < argc; i++) {
-		file.append("-");
-		file.append(argv[i]);
+	if(expectedPage && !gotPage) {
+		throw std::runtime_error("Please specify a page name");
 	}
 }

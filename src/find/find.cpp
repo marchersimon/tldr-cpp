@@ -415,12 +415,19 @@ double getDotProduct(vector<double> v1, vector<double> v2) {
 
 void find(vector<string> searchTerms) {
 
-	vector<TPage> tpages = getAllPages();
+
+	// convert search terms to lowercase
+	for(auto & searchTerm : searchTerms) {
+		std::transform(searchTerm.begin(), searchTerm.end(), searchTerm.begin(),
+    		[](unsigned char c){ return std::tolower(c); });
+	}
 
 	// stem all search terms
 	for(string & searchTerm : searchTerms) {
 		stem(searchTerm);
 	}
+	
+	vector<TPage> tpages = getAllPages();
 
 	// check if a page has at least one match, else it will be removed directly
 	for(auto & tpage : tpages) {
