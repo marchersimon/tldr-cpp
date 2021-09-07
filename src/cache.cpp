@@ -27,9 +27,16 @@ void cache::findPlatforms() {
 		platforms.push_back(newPlatform);
 	}
 
+	string preferredPlatform;
+	if(global::opts::platform.empty()) {
+		preferredPlatform = "linux";
+	} else {
+		preferredPlatform = global::opts::platform;
+	}
+
 	// sort the list, so that the preferred one will be first and common will be second
 	for(auto & platform : platforms) {
-		if(platform == global::opts::platform) {
+		if(platform == preferredPlatform) {
 			std::swap(platforms.at(0), platform);
 		}
 		if(platform == "common") {
