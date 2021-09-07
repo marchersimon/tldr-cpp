@@ -137,6 +137,12 @@ void opts::parse(const int & argc, char* argv[]) {
 			if(!help) {
 				parseSearchTerms();
 			}
+		} else if(isArgument({"--name"})) {
+			name = true;
+		} else if(isArgument({"--description"})) {
+			description = true;
+		} else if(isArgument({"--examples"})) {
+			examples = true;
 		} else if(isArgument({"--stem"})) {
 			stem = true;
 		} else if(isArgument({"--sub"})) {

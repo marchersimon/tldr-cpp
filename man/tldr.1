@@ -48,7 +48,7 @@ Perform a full-text search through all English tldr-pages. This option has to be
 
 The search happens in following steps: Removal of stop words (a, the, and, ...), stemming of all command and example descriptions and filtering out pages without a single match. After this, a score is calculated for every matched page using the TF-IDF algorithm and the Vector Space Model and a few custom rules. Important factors for the scoring are the length of the text a match was found in, the number of times a match was found in a page and the significance of a word, which is inverse proportional to the number of times this term occures across all pages. Also, matches in the commmand description have three times as much weight as matches in example descripions. In the end, this score get's boosted depending on if the command name exactly matches a search term, starts with a search term or contains a search term. The 12 best matches are displayed.
 
-The search can be limited to only the page name using \fB--name\fR, only the command descriptions using \fB--description\fR, only example descriptions using \fB--example\fR, or any combination of them. With \fB-v, --verbose\fR, the weight of each search term and the score of each match is displayed. When used with \fB-h, --help\fR, this will print information about how to use \fB-f, --find\fR.
+The search can be limited to only the page name using \fB--name\fR, only the command descriptions using \fB--description\fR, only example descriptions using \fB--examples\fR, or any combination of them. With \fB-v, --verbose\fR, the weight of each search term and the score of each match is displayed. When used with \fB-h, --help\fR, this will print information about how to use \fB-f, --find\fR.
 
 .IP "\fB--stat <command>\fR" 4
 Display the translation status of a tldr page. This will show a table with all translations of a command for all platforms. With \fB-p, --platform\fR, this will only show the specified platform. With \fB-l, --language\fR, this will only show the translation status for the given languages.
@@ -81,10 +81,10 @@ When used with \fB-u, --update\fR this will install and update all languages, in
 Uninstall tldr by removing its executable and the local tldr cache. This option will only be available when tldr was compiled manually.
 
 .IP "\fB--name\fR" 4
-When used with \fB-f, --find\fR this will only search for matches in the command name. This option can be combined with \fB--description\fR and \fB--example\fR.
+When used with \fB-f, --find\fR this will only search for matches in the command name. This option can be combined with \fB--description\fR and \fB--examples\fR.
 
 .IP "\fB--description\fR" 4
-When used with \fB-f, --find\fR this will only search for matches in the command description. This option can be combined with \fB--name\fR and \fB--example\fR.
+When used with \fB-f, --find\fR this will only search for matches in the command description. This option can be combined with \fB--name\fR and \fB--examples\fR.
 
-.IP "\fB--example\fR" 4
+.IP "\fB--examples\fR" 4
 When used with \fB-f, --find\fR this will only search for matches in example descriptions. This option can be combined with \fB--name\fR and \fB--description\fR.
