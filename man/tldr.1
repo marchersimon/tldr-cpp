@@ -1,0 +1,90 @@
+.\" Man page for tldr (https://github.com/marchersimon/tldr-cpp/)
+.\" Author: Marcher Simon
+
+.TH tldr 1 "September 2021" "tldr v1.7" " "
+
+.SH NAME
+
+tldr \- Command-line viewer for tldr-pages
+
+.SH SYNOPSIS
+
+tldr [\fIoption...\fR] [\fIargument...\fR] [\fIpage...\fR]
+
+.SH DESCRIPTION
+
+\fBtldr\fR is an offline tldr-page viewer written in C++20. It will download all wanted pages to the local tldr cache located at \fB$HOME/.tldr/cache/\fR. It also has some advanced features like full-text search or viewing pages from GitHub Pull Requests.
+
+For more information on the \fBtldr-project\fR visit https://github.com/tldr-pages/tldr.
+.br
+For more information on this client visit https://github.com/marchersimon/tldr-cpp.
+
+.SH EXAMPLES
+
+These are the most common actions which can be performed by tldr:
+
+.IP "tldr command" 4
+This views the English tldr page for "command".
+
+.IP "tldr --update" 4
+This updates the local tldr-cache and gets all new pages.
+
+.IP "tldr --language lang command" 4
+This views the tldr page for "command" in the language "lang".
+
+.SH OPTIONS
+
+.IP "\fB-u, --update\fR" 4
+Update all currently installed languages in the local tldr-cache. If no languages are installed, install and update all languages. When used with \fB--language\fR, only the specified ones along with \fIen\fR will be installed and updated. When used with \fB--all\fR, all languages will be installed and updated. When used with \fB-h, --help\fR, this will show information about how to use \fB-u, --update\fR.
+
+.IP "\fB-l <langs>, --language <langs>\fR" 4
+Specify a comma-separated list of languages (e.g. \fIen,fr,zh_TW\fR) to change the behaviour of some options. When used to show a page (including \fB--raw\fR) pages will be searched for in this order. When the page isn't available in any of those languages it will default to English. When used with \fB-u, --update\fR this will specify the list of languages to install and update. When used with \fB--stat\fR, this will only show the translation status of the specified languages. Available languages are: \fIbs\fR, \fIda\fR,  \fIde\fR,  \fIen\fR,  \fIes\fR,  \fIfa\fR,  \fIfr\fR,  \fIhi\fR,  \fIid\fR,  \fIit\fR,  \fIja\fR,  \fIko\fR,  \fIml\fR,  \fInl\fR,  \fIno\fR,  \fIpl\fR,  \fIpt_BR\fR,  \fIpt_PT\fR,  \fIro\fR,  \fIru\fR,  \fIsh\fR,  \fIsv\fR,  \fIta\fR,  \fIth\fR,  \fItr\fR,  \fIzh\fR and  \fIzh_TW\fR.
+
+.IP "\fB-p <platform>, --platform <platform>\fR" 4
+Set the preferred platform (defaults to \fIlinux\fR). When used to view a page (including \fB--raw\fR) this will first search the page in the given platform, then in common, and then in all other platforms. When used with \fB-f, --find\fR, this will limit the search results to the specified platform and commmon. When used with \fB--stat\fR, this will only list translations for the specified platform.
+
+.IP "\fB-f <search terms>, --find <search terms>\fR" 4
+Perform a full-text search through all English tldr-pages. This option has to be the last one - everything after it will be considered part of the serach term. When used with \fB-p, --platform\fR, search results will be limited to the specified platform and common.
+
+The search happens in following steps: Removal of stop words (a, the, and, ...), stemming of all command and example descriptions and filtering out pages without a single match. After this, a score is calculated for every matched page using the TF-IDF algorithm and the Vector Space Model and a few custom rules. Important factors for the scoring are the length of the text a match was found in, the number of times a match was found in a page and the significance of a word, which is inverse proportional to the number of times this term occures across all pages. Also, matches in the commmand description have three times as much weight as matches in example descripions. In the end, this score get's boosted depending on if the command name exactly matches a search term, starts with a search term or contains a search term. The 12 best matches are displayed.
+
+The search can be limited to only the page name using \fB--name\fR, only the command descriptions using \fB--description\fR, only example descriptions using \fB--example\fR, or any combination of them. With \fB-v, --verbose\fR, the weight of each search term and the score of each match is displayed. When used with \fB-h, --help\fR, this will print information about how to use \fB-f, --find\fR.
+
+.IP "\fB--stat <command>\fR" 4
+Display the translation status of a tldr page. This will show a table with all translations of a command for all platforms. With \fB-p, --platform\fR, this will only show the specified platform. With \fB-l, --language\fR, this will only show the translation status for the given languages.
+
+.IP "\fB--sub <command>\fR" 4
+List all documented sub-commands of a given command along with the first description line.
+
+.IP "\fB-v, --verbose\fR" 4
+Turns on verbose mode. When usd with \fB-u, --update\fR this will print the name of every modified and new page. When used with \fB-f, --find\fR, this will display the weight of each search term and the score of each match.
+
+.IP "\fB-r <path>, --render <path>\fR" 4
+Render a Markdown tldr page at a specific path. When used with \fB--raw\fR, it will show the raw Markdown source of that page.
+
+.IP "\fB--raw\fR" 4
+Display the raw Markdown source of a tldr page. Can be combined with \fB-l, --language\fR, \fB-p, --platform\fR and \fB-r, --render\fR.
+
+.IP "\fB--pr <pr_number> [page]\fR" 4
+View a tldr page being modified in an unmerged Pull Request from https://github.com/tldr-pages/tldr/pulls. If more than one tldr pages are being modified, the exact page has to be specified in the form pages.xyz/platform/page.md. Else it will list all modified pages to chose from. This is done by interacting with https://api.github.com.
+
+.IP "\fB-h, --help\fR" 4
+View help for the most common options in the form of a tldr page. When used with \fB-u, --update\fR or \fB-f, --find\fR it will show more detailed help for those options.
+
+.IP "\fB--stem\fR" 4
+Remove all stop words from a page and stem it before showing it. This should give insights in how \fB-f, --find\fR works as this is the page, which will be searched in.
+
+.IP "\fB-a, --all\fR" 4
+When used with \fB-u, --update\fR this will install and update all languages, instead of just the currently installed ones.
+
+.IP "\fB--destroy\fR" 4
+Uninstall tldr by removing its executable and the local tldr cache. This option will only be available when tldr was compiled manually.
+
+.IP "\fB--name\fR" 4
+When used with \fB-f, --find\fR this will only search for matches in the command name. This option can be combined with \fB--description\fR and \fB--example\fR.
+
+.IP "\fB--description\fR" 4
+When used with \fB-f, --find\fR this will only search for matches in the command description. This option can be combined with \fB--name\fR and \fB--example\fR.
+
+.IP "\fB--example\fR" 4
+When used with \fB-f, --find\fR this will only search for matches in example descriptions. This option can be combined with \fB--name\fR and \fB--description\fR.
