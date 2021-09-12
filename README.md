@@ -36,9 +36,19 @@ yay -S tldr-cpp-git
 
 ### Debian/Ubuntu
 
-On Ubuntu, `tldr-cpp` and it's dependencies have to be installed manually:
+On Debian-based systems, just download and install the latest deb package from the [Releases](https://github.com/marchersimon/tldr-cpp/releases) page.
+
+In case the error `tldr: error while loading shared libraries: libzip.so.5: cannot open shared object file: No such file or directory` appears, run
+
 ```
-sudo apt install libcurl4-openssl-dev libzip-dev
+sudo ln -s /lib/x86_64-linux-gnu/libzip.so.4 /lib/x86_64-linux-gnu/libzip.so.5
+```
+
+### Manual installation
+
+To compile and install `tldr-cpp` manually, make sure to have `libcurl` and `libzip` installed. The actual package name depends on your distribution.
+
+```
 git clone https://github.com/marchersimon/tldr-cpp
 cd tldr-cpp
 sudo make install
