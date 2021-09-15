@@ -42,24 +42,42 @@ string Page::getLine() {
 }
 
 void Page::print() {
+    string indent = "  ";
+    std::cout << '\n';
     if(!global::opts::platform.empty() && platform != global::opts::platform && global::opts::verbose) {
-        std::cout << "Displaying page from platform " << platform << "." << std::endl;
+        std::cout << indent << "Displaying page from platform " << platform << "." << std::endl;
     }
     
-    std::cout << name << std::endl << std::endl;
+    std::cout << indent << name << std::endl << std::endl;
     
-    std::cout << description;
+    size_t pos = description.find('\n');
+    while(pos != string::npos) {
+        description.replace(pos, 1, "\n  ");
+        pos = description.find('\n', pos + 1);
+    }
+    std::cout << indent << description;
     for(auto example : examples) {
-        std::cout << std::endl << example.description << std::endl << std::endl;
-        std::cout << example.command << std::endl;
+        std::cout << std::endl << indent << example.description << std::endl << std::endl;
+        std::cout << "    " << example.command << std::endl;
     }
+}
+
+int Page::getAgvDescrLen(string descr) {
+    int numberOfLines = std::count(descr.begin(), descr.end(), '\n') + 1;
+    int totalLen = descr.length();
+    int len = totalLen / numberOfLines;
+    return len;
 }
 
 void Page::format() {
     // format the title
     name.erase(0, 2);
+    std::transform(name.begin(), name.end(), name.begin(), ::toupper);
     name.insert(0, global::color::title);
     name.append(global::color::dfault);
+    // center the title
+    int avgDescrLen = getAgvDescrLen(description);
+    name.insert(0, string(avgDescrLen - name.length() / 2, ' '));
     // Format the command description
     // Remove the "> " at the start of the line
     std::regex reg1("(\\> )");
@@ -75,11 +93,17 @@ void Page::format() {
     }
     formatBackticks(description);
 
+    // Colorize commands and token syntax
     for (auto & example : examples) {
         formatBackticks(example.description);
         example.command.replace(0, 1, global::color::command);
         example.command.replace(example.command.length() - 1, 1, global::color::dfault);
         formatTokenSyntax(example.command);
+    }
+
+    // replace example bullet points with ▸
+    for(Example & example : examples) {
+        example.description.replace(0, 1, "▸");
     }
 }
 

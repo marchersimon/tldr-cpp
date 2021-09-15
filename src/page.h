@@ -33,4 +33,5 @@ class Page {
         void format();
         void formatBackticks(string & str);
         static void formatTokenSyntax(string & str);
+        int getAgvDescrLen(string descr);
 };
