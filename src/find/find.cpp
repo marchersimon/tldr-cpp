@@ -191,7 +191,7 @@ void formatPage(Page & page) {
 		pos = page.description.find('`');
 		while(pos != string::npos) {
 			page.description.erase(pos, 1);
-			pos = page.description.find(pos, '`');
+			pos = page.description.find('`', pos);
 		}
 	}
 	if(searchExamples) {
@@ -199,7 +199,7 @@ void formatPage(Page & page) {
 			pos = example.description.find('`');
 			while(pos != string::npos) {
 				example.description.erase(pos, 1);
-				pos = example.description.find(pos, '`');
+				pos = example.description.find('`', pos);
 			}
 		}
 	}
