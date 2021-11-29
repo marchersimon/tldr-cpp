@@ -121,7 +121,7 @@ void printDiff() {
     int tldrPathLenght = global::tldrPath.length();
     std::hash<std::string> hash;
     for(const auto & entry : std::filesystem::recursive_directory_iterator(global::tldrPath)) {// needs C++17
-        if(entry.is_directory()) {
+        if(entry.is_directory() || entry.path().filename() == "index.json") {
             continue;
         }
         std::ifstream fileStream1(entry.path());
