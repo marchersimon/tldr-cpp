@@ -202,8 +202,8 @@ void cache::stat(string name) {
 		}
 	}
 
-	std::vector<string> languages = {"en", "bs", "da", "de", "es", "fa", "fr", "hi", "id", "it", "ja", "ko", "ml", "nl", "no", "pl",
-									 "pt_BR", "pt_PT", "ro", "ru", "sh", "sv", "ta", "th", "tr", "zh", "zh_TW"};
+	std::vector<string> languages = {"en", "ar", "bn", "bs", "da", "de", "es", "fa", "fr", "hi", "id", "it", "ja", "ko", "ml", "ne", "nl", "no", "pl",
+									 "pt_BR", "pt_PT", "ro", "ru", "sh", "sr", "sv", "ta", "th", "tr", "uk", "uz", "zh", "zh_TW"};
 	if(!global::opts::languages.empty()) {
 		languages = global::opts::languages;
 	}
