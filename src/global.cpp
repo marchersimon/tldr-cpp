@@ -42,6 +42,7 @@ namespace global {
 		string token = "\033[38;2;40;215;66m";
 		string stat_checkmark = "\033[1;32m";
 		string foundMatch = "\033[38;5;110m";
+		string pageUpdated = "\033[38;5;110m";
 	}
 }
 

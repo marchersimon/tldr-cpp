@@ -138,7 +138,13 @@ void printDiff() {
         std::ifstream fileStream2(oldPath);
         if(!fileStream2.is_open()) {
             if(global::opts::verbose) {
-                std::cout << "Created:  " << entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght) << std::endl;
+                string line = entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght);
+                // highlight the file name excluding extention
+                size_t pos = line.find_last_of("/");
+                line.insert(pos + 1, global::color::pageUpdated);
+                line.insert(line.length() - 3, global::color::dfault);
+                std::cout << "Created:  " << line << std::endl;
+                
             }
             pagesChanged++;
             continue;
@@ -152,7 +158,12 @@ void printDiff() {
         size_t hash2 = hash(file2);
         if(hash1 != hash2) {
             if(global::opts::verbose) {
-                std::cout << "Modified: " << entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght) << std::endl;
+                string line = entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght);
+                // highlight the file name excluding extention
+                size_t pos = line.find_last_of("/");
+                line.insert(pos + 1, global::color::pageUpdated);
+                line.insert(line.length() - 3, global::color::dfault);
+                std::cout << "Modified: " << line << std::endl;
             }
             pagesChanged++;
         }
