@@ -200,7 +200,7 @@ vector<string> getInstalledLanguages() {
 void updateCache() {
 
     vector<char> zipVector = downloadZip();
-    std::cout << std::endl << "[2/2] Exctracting..." << std::endl;
+    std::cout << std::endl << "[2/2] Extracting..." << std::endl;
 
     // remove any ~/.tldr/cache.old directory, just to make sure
     std::filesystem::remove_all(global::HOME + "/.tldr/cache.old");
