@@ -45,7 +45,8 @@ namespace global {
 		extern string token;
 		extern string stat_checkmark;
 		extern string foundMatch;
-		extern string pageUpdated;
+		extern string pageCreated;
+		extern string pageModified;
 	}
 
 	void init();

@@ -19,6 +19,13 @@ struct zipEntry {
     std::string filename;
 };
 
+struct pageUpdateStatus {
+    std::string name;
+    std::string language;
+    std::string platform;
+    bool created; // if 0, page is modified
+};
+
 void parseEntry(struct zipEntry &entry, vector<string> &InstalledLanguages);
 
 int libcurl_ProgressCallback(void* ptr, double dltotal, double dlnow, double utotal, double ulnow);

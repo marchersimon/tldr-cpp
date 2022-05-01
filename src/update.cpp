@@ -117,9 +117,11 @@ vector<char> downloadZip() {
 }
 
 void printDiff() {
-    int pagesChanged = 0;
     int tldrPathLenght = global::tldrPath.length();
     std::hash<std::string> hash;
+    std::vector<string> platforms = {"common", "linux", "osx", "android", "windows", "sunos"};
+    std::vector<string> languages = getInstalledLanguages();
+    std::vector<pageUpdateStatus> changedPages;
     for(const auto & entry : std::filesystem::recursive_directory_iterator(global::tldrPath)) {// needs C++17
         if(entry.is_directory() || entry.path().filename() == "index.json") {
             continue;
@@ -139,14 +141,18 @@ void printDiff() {
         if(!fileStream2.is_open()) {
             if(global::opts::verbose) {
                 string line = entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght);
-                // highlight the file name excluding extention
-                size_t pos = line.find_last_of("/");
-                line.insert(pos + 1, global::color::pageUpdated);
-                line.insert(line.length() - 3, global::color::dfault);
-                std::cout << "Created:  " << line << std::endl;
-                
+                std::string language, platform, name;
+                if(line.at(5) == '/') {
+                    language = "en";
+                } else {
+                    language = line.substr(6,line.find_first_of('/')-6);
+                }
+                size_t pos = line.find('/');
+                size_t pos1 = line.find('/', pos+1);
+                platform = line.substr(pos+1, pos1 - pos - 1);
+                name = line.substr(pos1+1, line.find('.', 6)-pos1-1);
+                changedPages.push_back({name, language, platform, true});  
             }
-            pagesChanged++;
             continue;
         }
 
@@ -159,22 +165,58 @@ void printDiff() {
         if(hash1 != hash2) {
             if(global::opts::verbose) {
                 string line = entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght);
-                // highlight the file name excluding extention
-                size_t pos = line.find_last_of("/");
-                line.insert(pos + 1, global::color::pageUpdated);
-                line.insert(line.length() - 3, global::color::dfault);
-                std::cout << "Modified: " << line << std::endl;
+                std::string language, platform, name;
+                if(line.at(5) == '/') {
+                    language = "en";
+                } else {
+                    language = line.substr(6,line.find_first_of('/')-6);
+                }
+                size_t pos = line.find('/');
+                size_t pos1 = line.find('/', pos+1);
+                platform = line.substr(pos+1, pos1 - pos - 1);
+                name = line.substr(pos1+1, line.find('.', 6)-pos1-1);
+                changedPages.push_back({name, language, platform, false});
             }
-            pagesChanged++;
         }
     }
-    if(pagesChanged == 0) {
+
+    // print all changes
+    bool languageExists;
+    bool platformExists;
+    for(const std::string & l : languages) {
+        languageExists = false;
+        for(const std::string & pl : platforms) {
+            platformExists = false;
+            for(const pageUpdateStatus & p : changedPages) {
+                if(p.language == l && p.platform == pl) {
+                    if(!languageExists) {
+                        std::cout << l << "\n";
+                        languageExists = true;
+                    }
+                    if(!platformExists) {
+                        std::cout << "  " << pl << "\n";
+                        platformExists = true;
+                    }
+                    std::cout << "    ";
+                    if(p.created) {
+                        std::cout << global::color::pageCreated;
+                    } else {
+                        std::cout << global::color::pageModified;
+                    }
+                    std::cout << p.name << global::color::dfault << "\n";
+                }
+            }
+        }
+    }
+    std::cout << std::endl;
+
+    if(changedPages.size() == 0) {
         // this will also be displayed if pages have been removed // TODO
         std::cout << "It had no effect!" << std::endl;
-    } else if (pagesChanged == 1) {
+    } else if (changedPages.size() == 1) {
         std::cout << "1 page updated" << std::endl;
     } else {
-        std::cout << pagesChanged << " pages updated" << std::endl;
+        std::cout << changedPages.size() << " pages updated" << std::endl;
     }
 }
 
