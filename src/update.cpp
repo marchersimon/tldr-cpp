@@ -139,20 +139,18 @@ void printDiff() {
         oldPath.insert(tldrPathLenght - 1, ".old");
         std::ifstream fileStream2(oldPath);
         if(!fileStream2.is_open()) {
-            if(global::opts::verbose) {
-                string line = entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght);
-                std::string language, platform, name;
-                if(line.at(5) == '/') {
-                    language = "en";
-                } else {
-                    language = line.substr(6,line.find_first_of('/')-6);
-                }
-                size_t pos = line.find('/');
-                size_t pos1 = line.find('/', pos+1);
-                platform = line.substr(pos+1, pos1 - pos - 1);
-                name = line.substr(pos1+1, line.find('.', 6)-pos1-1);
-                changedPages.push_back({name, language, platform, true});  
+            string line = entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght);
+            std::string language, platform, name;
+            if(line.at(5) == '/') {
+                language = "en";
+            } else {
+                language = line.substr(6,line.find_first_of('/')-6);
             }
+            size_t pos = line.find('/');
+            size_t pos1 = line.find('/', pos+1);
+            platform = line.substr(pos+1, pos1 - pos - 1);
+            name = line.substr(pos1+1, line.find('.', 6)-pos1-1);
+            changedPages.push_back({name, language, platform, true});  
             continue;
         }
 
@@ -163,55 +161,54 @@ void printDiff() {
         fileStream2.close();
         size_t hash2 = hash(file2);
         if(hash1 != hash2) {
-            if(global::opts::verbose) {
-                string line = entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght);
-                std::string language, platform, name;
-                if(line.at(5) == '/') {
-                    language = "en";
-                } else {
-                    language = line.substr(6,line.find_first_of('/')-6);
-                }
-                size_t pos = line.find('/');
-                size_t pos1 = line.find('/', pos+1);
-                platform = line.substr(pos+1, pos1 - pos - 1);
-                name = line.substr(pos1+1, line.find('.', 6)-pos1-1);
-                changedPages.push_back({name, language, platform, false});
+            string line = entry.path().string().substr(tldrPathLenght, entry.path().string().length() - tldrPathLenght);
+            std::string language, platform, name;
+            if(line.at(5) == '/') {
+                language = "en";
+            } else {
+                language = line.substr(6,line.find_first_of('/')-6);
             }
+            size_t pos = line.find('/');
+            size_t pos1 = line.find('/', pos+1);
+            platform = line.substr(pos+1, pos1 - pos - 1);
+            name = line.substr(pos1+1, line.find('.', 6)-pos1-1);
+            changedPages.push_back({name, language, platform, false});
         }
     }
 
-    // print all changes
-    bool languageExists;
-    bool platformExists;
-    for(const std::string & l : languages) {
-        languageExists = false;
-        for(const std::string & pl : platforms) {
-            platformExists = false;
-            for(const pageUpdateStatus & p : changedPages) {
-                if(p.language == l && p.platform == pl) {
-                    if(!languageExists) {
-                        std::cout << l << "\n";
-                        languageExists = true;
+    if(changedPages.size() > 0 && changedPages.size() < 100) {
+        // print all changes
+        bool languageExists;
+        bool platformExists;
+        for(const std::string & l : languages) {
+            languageExists = false;
+            for(const std::string & pl : platforms) {
+                platformExists = false;
+                for(const pageUpdateStatus & p : changedPages) {
+                    if(p.language == l && p.platform == pl) {
+                        if(!languageExists) {
+                            std::cout << " " << l << "\n";
+                            languageExists = true;
+                        }
+                        if(!platformExists) {
+                            std::cout << "   " << pl << "\n";
+                            platformExists = true;
+                        }
+                        std::cout << "     ";
+                        if(p.created) {
+                            std::cout << global::color::pageCreated;
+                        } else {
+                            std::cout << global::color::pageModified;
+                        }
+                        std::cout << p.name << global::color::dfault << "\n";
                     }
-                    if(!platformExists) {
-                        std::cout << "  " << pl << "\n";
-                        platformExists = true;
-                    }
-                    std::cout << "    ";
-                    if(p.created) {
-                        std::cout << global::color::pageCreated;
-                    } else {
-                        std::cout << global::color::pageModified;
-                    }
-                    std::cout << p.name << global::color::dfault << "\n";
                 }
             }
         }
+        std::cout << std::endl;
     }
-    std::cout << std::endl;
 
     if(changedPages.size() == 0) {
-        // this will also be displayed if pages have been removed // TODO
         std::cout << "It had no effect!" << std::endl;
     } else if (changedPages.size() == 1) {
         std::cout << "1 page updated" << std::endl;
@@ -242,7 +239,7 @@ vector<string> getInstalledLanguages() {
 void updateCache() {
 
     vector<char> zipVector = downloadZip();
-    std::cout << std::endl << "[2/2] Extracting..." << std::endl;
+    std::cout << std::endl << "[2/2] Extracting...\n" << std::endl;
 
     // remove any ~/.tldr/cache.old directory, just to make sure
     std::filesystem::remove_all(global::HOME + "/.tldr/cache.old");
